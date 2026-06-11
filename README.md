@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# nodibot — B2B Industrial Automation RFQ Platform
 
-## Getting Started
+A high-intent, SEO-first catalog for secondary-market industrial automation parts. Visitors search
+by exact part number and submit a Request-for-Quote (RFQ); there is no cart or payment.
 
-First, run the development server:
+**Stack:** Next.js 16 (App Router, React 19) · Supabase (Postgres) · deployed on Vercel.
+
+## Phase 1 (this build) — public site + database
+
+- `/` — marketing landing page (search routes into the catalog)
+- `/catalog` — searchable/filterable catalog (`?q=` part-number search, `?cat=` category)
+- `/products/[pn]` — SEO product detail page with RFQ form + view-count tracking
+- `POST /api/inquiries` — persists an RFQ, returns a ticket reference
+- `POST /api/parts/[pn]/view` — atomic per-product view-count increment
+
+## Phase 2 — admin portal
+
+Protected admin pages under `/admin-portal` (single admin via Supabase Auth):
+
+- `/admin-portal/login` — email/password sign-in
+- `/admin-portal/products` — inventory CRUD (create/edit/delete, supplier notes, visibility)
+- `/admin-portal/inquiries` — RFQ leads pipeline (New → Sourcing → Found → Quoted → Closed)
+- `/admin-portal/analytics-demand` — parts ranked by views; sourcing-trip "buy list"
+
+`middleware.ts` guards every `/admin-portal/*` route and refreshes the session.
+
+## Setup
+
+### 1. Create a Supabase project
+
+At [supabase.com](https://supabase.com), create a project. From **Project Settings → API**, copy:
+
+- Project URL
+- `anon` public key
+- `service_role` secret key (server-only)
+
+### 2. Configure environment
+
+Copy `.env.example` to `.env.local` and fill in the values:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Apply the schema
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+In the Supabase **SQL Editor**, run the contents of
+[`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql). This creates the `parts`
+and `inquiries` tables, the trigram search index, Row-Level Security policies, and the
+`increment_part_view` function.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Apply the admin policies (Phase 2)
 
-## Learn More
+In the SQL Editor, also run [`supabase/migrations/0002_admin.sql`](supabase/migrations/0002_admin.sql).
+This grants the authenticated admin full CRUD on parts and read/update on inquiries.
 
-To learn more about Next.js, take a look at the following resources:
+### 5. Create the admin user
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+In Supabase: **Authentication → Users → Add user**. Enter an email + password and enable
+**Auto Confirm User** (so you can sign in immediately). This single user is your admin —
+sign in at `/admin-portal/login`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 6. Seed the catalog
 
-## Deploy on Vercel
+```bash
+npm run seed
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Loads the 28 sample parts into the `parts` table (uses the service-role key from `.env.local`).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 7. Run it
+
+```bash
+npm run dev        # http://localhost:3000   ·   admin at /admin-portal/login
+```
+
+## Scripts
+
+| Command         | What it does                                  |
+|-----------------|-----------------------------------------------|
+| `npm run dev`   | Start the dev server                          |
+| `npm run build` | Production build                              |
+| `npm run start` | Serve the production build                    |
+| `npm test`      | Run unit tests (Vitest)                       |
+| `npm run seed`  | Seed the `parts` table from the prototype data |
+| `npm run lint`  | ESLint                                        |
+
+## Deploy (Vercel)
+
+Import the repo into Vercel and set the same env vars (`NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and optionally
+`NEXT_PUBLIC_WHATSAPP_URL`, `NEXT_PUBLIC_SITE_URL`) in the project settings. No other configuration
+is required.

@@ -1,0 +1,203 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Ic } from "@/app/_components/icons";
+import { ProductCard } from "./ProductCard";
+import { CATEGORIES, HOSTS } from "@/app/_lib/taxonomy";
+import {
+  computeCounts,
+  filterParts,
+  sortParts,
+  type SortKey,
+} from "@/app/_lib/catalog";
+import type { Part } from "@/app/_lib/types";
+
+type Group = "cats" | "hosts" | "stock";
+const STOCK_OPTS = [
+  { id: "in", l: "In stock now" },
+  { id: "request", l: "Source on request" },
+];
+
+function CatalogHero({
+  hostFilter,
+  toggleHost,
+}: {
+  hostFilter: string[];
+  toggleHost: (id: string) => void;
+}) {
+  return (
+    <section className="hero">
+      <div className="wrap">
+        <h1>
+          Industrial automation parts, <em>sourced on demand.</em>
+        </h1>
+        <p>
+          Verified secondary-market controllers, drives, pendants and reducers for decommissioned
+          FANUC, ABB, KUKA, Yaskawa &amp; Siemens systems. Drop your part number — we locate, test,
+          and quote.
+        </p>
+        <div className="hero-stats">
+          <div className="hero-stat">
+            <div className="n">12,400+</div>
+            <div className="l">Part numbers indexed</div>
+          </div>
+          <div className="hero-stat">
+            <div className="n">&lt; 2 hrs</div>
+            <div className="l">Median quote response</div>
+          </div>
+          <div className="hero-stat">
+            <div className="n">7</div>
+            <div className="l">OEM host families</div>
+          </div>
+        </div>
+        <div className="host-row">
+          {HOSTS.map((h) => (
+            <button
+              key={h.id}
+              className={"host-chip" + (hostFilter.includes(h.id) ? " on" : "")}
+              onClick={() => toggleHost(h.id)}
+            >
+              {h.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function CatalogView({
+  parts,
+  initialQuery = "",
+  initialCat = null,
+}: {
+  parts: Part[];
+  initialQuery?: string;
+  initialCat?: string | null;
+}) {
+  const [sel, setSel] = useState<Record<Group, string[]>>({
+    cats: initialCat ? [initialCat] : [],
+    hosts: [],
+    stock: [],
+  });
+  const [sort, setSort] = useState<SortKey>("demand");
+  const query = initialQuery;
+
+  const toggle = (group: Group, id: string) =>
+    setSel((s) => ({
+      ...s,
+      [group]: s[group].includes(id) ? s[group].filter((x) => x !== id) : [...s[group], id],
+    }));
+
+  const counts = useMemo(() => computeCounts(parts), [parts]);
+
+  const results = useMemo(
+    () =>
+      sortParts(
+        filterParts(parts, { cats: sel.cats, hosts: sel.hosts, stock: sel.stock, query }),
+        sort,
+      ),
+    [parts, sel, query, sort],
+  );
+
+  return (
+    <>
+      <CatalogHero hostFilter={sel.hosts} toggleHost={(id) => toggle("hosts", id)} />
+      <div className="wrap">
+        <div className="catalog">
+          <aside className="filters">
+            <div className="filter-group">
+              <h3 className="filter-h">Category</h3>
+              {CATEGORIES.map((c) => {
+                const on = sel.cats.includes(c.id);
+                return (
+                  <div
+                    key={c.id}
+                    className={"filter-opt" + (on ? " on" : "")}
+                    onClick={() => toggle("cats", c.id)}
+                  >
+                    <span className="box">{on && <Ic.check />}</span>
+                    {c.label}
+                    <span className="count">{counts.cat[c.id] || 0}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="filter-group">
+              <h3 className="filter-h">Host system</h3>
+              {HOSTS.map((h) => {
+                const on = sel.hosts.includes(h.id);
+                return (
+                  <div
+                    key={h.id}
+                    className={"filter-opt" + (on ? " on" : "")}
+                    onClick={() => toggle("hosts", h.id)}
+                  >
+                    <span className="box">{on && <Ic.check />}</span>
+                    {h.label}
+                    <span className="count">{counts.host[h.id] || 0}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="filter-group">
+              <h3 className="filter-h">Availability</h3>
+              {STOCK_OPTS.map((a) => {
+                const on = sel.stock.includes(a.id);
+                return (
+                  <div
+                    key={a.id}
+                    className={"filter-opt" + (on ? " on" : "")}
+                    onClick={() => toggle("stock", a.id)}
+                  >
+                    <span className="box">{on && <Ic.check />}</span>
+                    {a.l}
+                  </div>
+                );
+              })}
+            </div>
+          </aside>
+
+          <div>
+            <div className="results-head">
+              <div>
+                <h2 className="results-title">
+                  {query ? `Results for “${query}”` : "All inventory"}
+                </h2>
+                <p className="results-sub">
+                  {results.length} parts · prioritized by live search demand
+                </p>
+              </div>
+              <div className="results-tools">
+                <select
+                  className="select"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as SortKey)}
+                >
+                  <option value="demand">Sort: Most requested</option>
+                  <option value="price-lo">Price: Low to high</option>
+                  <option value="price-hi">Price: High to low</option>
+                </select>
+              </div>
+            </div>
+
+            {results.length === 0 ? (
+              <div style={{ padding: "60px 0", textAlign: "center", color: "var(--muted)" }}>
+                <p style={{ fontSize: 15 }}>No indexed match — but we can still source it.</p>
+                <p style={{ fontSize: 13 }}>
+                  Submit the part number and our team will hunt it across our China supply network.
+                </p>
+              </div>
+            ) : (
+              <div className="grid density-regular">
+                {results.map((p) => (
+                  <ProductCard key={p.id} part={p} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

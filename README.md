@@ -5,25 +5,6 @@ by exact part number and submit a Request-for-Quote (RFQ); there is no cart or p
 
 **Stack:** Next.js 16 (App Router, React 19) · Supabase (Postgres) · deployed on Vercel.
 
-## Phase 1 (this build) — public site + database
-
-- `/` — marketing landing page (search routes into the catalog)
-- `/catalog` — searchable/filterable catalog (`?q=` part-number search, `?cat=` category)
-- `/products/[pn]` — SEO product detail page with RFQ form + view-count tracking
-- `POST /api/inquiries` — persists an RFQ, returns a ticket reference
-- `POST /api/parts/[pn]/view` — atomic per-product view-count increment
-
-## Phase 2 — admin portal
-
-Protected admin pages under `/admin-portal` (single admin via Supabase Auth):
-
-- `/admin-portal/login` — email/password sign-in
-- `/admin-portal/products` — inventory CRUD (create/edit/delete, supplier notes, visibility)
-- `/admin-portal/inquiries` — RFQ leads pipeline (New → Sourcing → Found → Quoted → Closed)
-- `/admin-portal/analytics-demand` — parts ranked by views; sourcing-trip "buy list"
-
-`middleware.ts` guards every `/admin-portal/*` route and refreshes the session.
-
 ## Setup
 
 ### 1. Create a Supabase project

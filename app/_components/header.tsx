@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Ic } from "./icons";
@@ -9,11 +9,9 @@ import { LogoMark } from "./logo";
 const THEME_KEY = "nodibot-theme";
 
 function useDarkMode(): [boolean, () => void] {
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
-    setDark(document.documentElement.getAttribute("data-theme") === "dark");
-  }, []);
+  const [dark, setDark] = useState(
+    () => typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "dark",
+  );
 
   const toggle = () => {
     setDark((prev) => {

@@ -6,7 +6,7 @@ import { Footer } from "@/app/_components/footer";
 // import { WaFloat } from "@/app/_components/wa-float"; // WhatsApp disabled for now
 import { Ic } from "@/app/_components/icons";
 import { PartImage, StockBadge, LifeBadge } from "@/app/_components/badges";
-import { ProductCard } from "@/app/_components/catalog/ProductCard";
+import { ProductCard, ProductListItem } from "@/app/_components/catalog/ProductCard";
 import { Specs, Compat, PriceBlock, TrustStrip } from "@/app/_components/product/sections";
 import { ViewCounter } from "@/app/_components/product/ViewCounter";
 import { RfqForm } from "@/app/_components/rfq/RfqForm";
@@ -89,9 +89,14 @@ export default async function ProductPage({
               {related.length > 0 && (
                 <>
                   <h3 className="section-h">Related in {CAT_LABEL[part.cat]}</h3>
-                  <div className="grid density-compact">
+                  <div className="grid density-compact catalog-card-grid">
                     {related.map((p) => (
                       <ProductCard key={p.id} part={p} />
+                    ))}
+                  </div>
+                  <div className="part-list">
+                    {related.map((p) => (
+                      <ProductListItem key={p.id} part={p} />
                     ))}
                   </div>
                 </>

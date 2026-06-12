@@ -31,3 +31,27 @@ export function ProductCard({ part }: { part: Part }) {
     </Link>
   );
 }
+
+export function ProductListItem({ part }: { part: Part }) {
+  return (
+    <Link className="part-row fade-in" href={`/products/${encodeURIComponent(part.pn)}`}>
+      <PartImage part={part} className="part-row-img" />
+      <div className="part-row-main">
+        <div className="part-row-kicker">{part.brand}</div>
+        <div className="part-row-pn mono">{part.pn}</div>
+        <p className="part-row-name">{part.name}</p>
+        <div className="part-row-badges">
+          <StockBadge part={part} />
+          <LifeBadge life={part.life} />
+        </div>
+      </div>
+      <div className="part-row-side">
+        <div className="part-row-price">
+          <span>refurb</span>
+          {priceRange(part.refurb)}
+        </div>
+        <Ic.arrowR />
+      </div>
+    </Link>
+  );
+}

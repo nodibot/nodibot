@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Ic } from "@/app/_components/icons";
-import { ProductCard } from "./ProductCard";
+import { ProductCard, ProductListItem } from "./ProductCard";
 import { CATEGORIES, HOSTS } from "@/app/_lib/taxonomy";
 import {
   computeCounts,
@@ -75,12 +76,16 @@ export function CatalogView({
   initialQuery?: string;
   initialCat?: string | null;
 }) {
+  const router = useRouter();
   const [sel, setSel] = useState<Record<Group, string[]>>({
     cats: initialCat ? [initialCat] : [],
     hosts: [],
     stock: [],
   });
   const [sort, setSort] = useState<SortKey>("demand");
+  const [mobileQuery, setMobileQuery] = useState(initialQuery);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const query = initialQuery;
 
   const toggle = (group: Group, id: string) =>
@@ -100,12 +105,68 @@ export function CatalogView({
     [parts, sel, query, sort],
   );
 
+  const activeFilterCount = sel.cats.length + sel.hosts.length + sel.stock.length;
+  const goSearch = () => {
+    const trimmed = mobileQuery.trim();
+    router.push(trimmed ? `/catalog?q=${encodeURIComponent(trimmed)}` : "/catalog");
+  };
+
   return (
     <>
       <CatalogHero hostFilter={sel.hosts} toggleHost={(id) => toggle("hosts", id)} />
       <div className="wrap">
+        <div className="mobile-catalog-bar">
+          <button
+            className="btn btn-ghost"
+            type="button"
+            aria-expanded={searchOpen}
+            aria-controls="mobile-catalog-search"
+            onClick={() => setSearchOpen((open) => !open)}
+          >
+            <Ic.search />
+            Search
+          </button>
+          <button
+            className="btn btn-ghost"
+            type="button"
+            aria-expanded={filtersOpen}
+            aria-controls="catalog-filters"
+            onClick={() => setFiltersOpen((open) => !open)}
+          >
+            Filters
+            {activeFilterCount > 0 && <span className="filter-count">{activeFilterCount}</span>}
+          </button>
+          <select
+            className="select"
+            value={sort}
+            aria-label="Sort catalog"
+            onChange={(e) => setSort(e.target.value as SortKey)}
+          >
+            <option value="demand">Most requested</option>
+            <option value="price-lo">Price low-high</option>
+            <option value="price-hi">Price high-low</option>
+          </select>
+        </div>
+        <div
+          id="mobile-catalog-search"
+          className={"mobile-catalog-search" + (searchOpen ? " open" : "")}
+        >
+          <div className="searchbar">
+            <Ic.search />
+            <input
+              value={mobileQuery}
+              onChange={(e) => setMobileQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && goSearch()}
+              placeholder="Paste a part number"
+              aria-label="Search parts"
+            />
+          </div>
+          <button className="btn btn-primary" type="button" onClick={goSearch}>
+            Find
+          </button>
+        </div>
         <div className="catalog">
-          <aside className="filters">
+          <aside id="catalog-filters" className={"filters" + (filtersOpen ? " open" : "")}>
             <div className="filter-group">
               <h3 className="filter-h">Category</h3>
               {CATEGORIES.map((c) => {
@@ -189,11 +250,18 @@ export function CatalogView({
                 </p>
               </div>
             ) : (
-              <div className="grid density-regular">
-                {results.map((p) => (
-                  <ProductCard key={p.id} part={p} />
-                ))}
-              </div>
+              <>
+                <div className="grid density-regular catalog-card-grid">
+                  {results.map((p) => (
+                    <ProductCard key={p.id} part={p} />
+                  ))}
+                </div>
+                <div className="part-list">
+                  {results.map((p) => (
+                    <ProductListItem key={p.id} part={p} />
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>

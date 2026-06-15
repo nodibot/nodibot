@@ -105,11 +105,15 @@ export async function countSentTodayWith(supabase: SupabaseClient, startOfDayIso
   return count ?? 0;
 }
 
+// Returns the most recent *successful* send for a lead. Failed attempts (which
+// have null thread/message ids) are excluded so reply-sync and reminder
+// threading always key off a real Gmail thread.
 export async function getLatestMessageWith(supabase: SupabaseClient, leadId: string) {
   const { data, error } = await supabase
     .from("outreach_messages")
     .select("*")
     .eq("lead_id", leadId)
+    .eq("status", "sent")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

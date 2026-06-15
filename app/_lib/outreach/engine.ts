@@ -28,8 +28,9 @@ export interface PlanInput {
 
 export function planActions({ now, leads, settings, sentToday }: PlanInput): OutreachAction[] {
   if (settings.paused) return [];
+  // warmupRamp already caps at daily_cap, so ceiling is the effective limit.
   const ceiling = warmupRamp(now, settings);
-  let budget = Math.max(0, Math.min(settings.daily_cap, ceiling) - sentToday);
+  let budget = Math.max(0, ceiling - sentToday);
   if (budget <= 0) return [];
 
   const actions: OutreachAction[] = [];

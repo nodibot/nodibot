@@ -37,11 +37,18 @@ export async function saveTemplateAction(formData: FormData) {
   revalidatePath("/admin-portal/outreach/templates");
 }
 
+// Coerce a FormData value to a positive integer, falling back to `fallback`
+// for empty / non-numeric / out-of-range input (the form's min= is client-only).
+function positiveInt(value: FormDataEntryValue | null, fallback: number): number {
+  const n = Math.floor(Number(value));
+  return Number.isFinite(n) && n >= 1 ? n : fallback;
+}
+
 export async function saveSettingsAction(formData: FormData) {
   await saveSettings({
-    daily_cap: Number(formData.get("daily_cap") ?? 20),
+    daily_cap: positiveInt(formData.get("daily_cap"), 20),
     warmup_start_date: (String(formData.get("warmup_start_date") ?? "").trim() || null),
-    reminder_delay_days: Number(formData.get("reminder_delay_days") ?? 7),
+    reminder_delay_days: positiveInt(formData.get("reminder_delay_days"), 7),
     paused: formData.get("paused") === "on",
   });
   revalidatePath("/admin-portal/outreach/settings");

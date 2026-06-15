@@ -132,6 +132,7 @@ export async function updateLeadStatusWith(
 ): Promise<void> {
   const patch: Record<string, unknown> = { status: fields.status, updated_at: new Date().toISOString() };
   if (fields.last_sent_at) patch.last_sent_at = fields.last_sent_at;
+  if (fields.reply_detected_at) patch.reply_detected_at = fields.reply_detected_at;
   const { error } = await supabase.from("outreach_leads").update(patch).eq("id", leadId);
   if (error) throw new Error(error.message);
 }

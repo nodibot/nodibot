@@ -15,6 +15,7 @@ create table if not exists public.outreach_leads (
   status text not null default 'pending'
     check (status in ('pending','contacted','reminded','replied','bounced','unsubscribed','completed')),
   last_sent_at timestamptz,
+  reply_detected_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

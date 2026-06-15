@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/admin-portal/products", label: "Inventory", icon: <Ic.cube /> },
   { href: "/admin-portal/inquiries", label: "Inquiries", icon: <Ic.doc /> },
   { href: "/admin-portal/analytics-demand", label: "Demand / buy list", icon: <Ic.spark /> },
+  { href: "/admin-portal/outreach", label: "Outreach", icon: <Ic.spark /> },
 ];
 
 export function AdminNav() {

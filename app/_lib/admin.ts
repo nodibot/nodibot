@@ -8,7 +8,7 @@ import {
 } from "./types";
 
 const ADMIN_COLUMNS =
-  "id, cat, brand, pn, name, refurb_low, refurb_high, oem, life, cond, stock, qty, lead, hosts, views, is_active, supplier_notes, resale_ref";
+  "id, cat, brand, pn, name, life, cond, stock, qty, lead, hosts, views, is_active, alternative_pns, category_l1, category_l2, series, equipment_type, compatible_controllers, compatible_robot_models, controller_generation, availability_label, description_kr, failure_keywords, image_url, image_storage_path, image_status, demand_score, scarcity_score, sales_priority_grade, sales_priority_score, source_urls, admin_notes";
 
 // ---- parts ----
 

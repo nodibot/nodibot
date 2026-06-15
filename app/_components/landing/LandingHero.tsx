@@ -98,7 +98,7 @@ export function LandingHero() {
               </span>
             </div>
             <div className="price">
-              <span className="cur">refurb </span>$1,100 – $1,800
+              <span className="cur">status </span>RFQ ready
             </div>
           </div>
           <div className="lp-fcard c2">
@@ -110,7 +110,7 @@ export function LandingHero() {
               <span className="pn mono">A06B-6114-H206</span>
             </div>
             <div className="price">
-              <span className="cur">refurb </span>$1,200 – $1,800
+              <span className="cur">status </span>Source on request
             </div>
           </div>
           <div className="lp-fcard c3">
@@ -122,7 +122,7 @@ export function LandingHero() {
               <span className="pn mono">RV-40E</span>
             </div>
             <div className="price">
-              <span className="cur">refurb </span>$800 – $1,400
+              <span className="cur">status </span>Compatibility checked
             </div>
           </div>
           <div className="lp-quote-float">

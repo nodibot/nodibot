@@ -2,7 +2,7 @@
 // unit-testable in isolation.
 import type { Part } from "./types";
 
-export type SortKey = "demand" | "price-lo" | "price-hi";
+export type SortKey = "demand" | "brand" | "category";
 
 export interface CatalogFilters {
   cats: string[];
@@ -11,15 +11,17 @@ export interface CatalogFilters {
   query: string;
 }
 
-const mid = (p: Part) => (p.refurb[0] + p.refurb[1]) / 2;
-
 export function matchesQuery(part: Part, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
   return (
     part.pn.toLowerCase().includes(q) ||
     part.name.toLowerCase().includes(q) ||
-    part.brand.toLowerCase().includes(q)
+    part.brand.toLowerCase().includes(q) ||
+    part.alternativePns.some((pn) => pn.toLowerCase().includes(q)) ||
+    part.compatibleControllers.some((controller) => controller.toLowerCase().includes(q)) ||
+    part.compatibleRobotModels.some((model) => model.toLowerCase().includes(q)) ||
+    part.failureKeywords.some((keyword) => keyword.toLowerCase().includes(q))
   );
 }
 
@@ -37,8 +39,8 @@ export function sortParts(parts: Part[], sort: SortKey): Part[] {
   const r = [...parts];
   r.sort((a, b) => {
     if (sort === "demand") return b.views - a.views;
-    if (sort === "price-lo") return mid(a) - mid(b);
-    if (sort === "price-hi") return mid(b) - mid(a);
+    if (sort === "brand") return a.brand.localeCompare(b.brand) || a.pn.localeCompare(b.pn);
+    if (sort === "category") return a.cat.localeCompare(b.cat) || a.pn.localeCompare(b.pn);
     return 0;
   });
   return r;

@@ -143,8 +143,8 @@ export function CatalogView({
             onChange={(e) => setSort(e.target.value as SortKey)}
           >
             <option value="demand">Most requested</option>
-            <option value="price-lo">Price low-high</option>
-            <option value="price-hi">Price high-low</option>
+            <option value="brand">Brand A-Z</option>
+            <option value="category">Category A-Z</option>
           </select>
         </div>
         <div
@@ -236,8 +236,8 @@ export function CatalogView({
                   onChange={(e) => setSort(e.target.value as SortKey)}
                 >
                   <option value="demand">Sort: Most requested</option>
-                  <option value="price-lo">Price: Low to high</option>
-                  <option value="price-hi">Price: High to low</option>
+                  <option value="brand">Brand: A-Z</option>
+                  <option value="category">Category: A-Z</option>
                 </select>
               </div>
             </div>

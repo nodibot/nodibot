@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3001",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "import:parts": "tsx scripts/import-parts-xlsx.ts",
+    "publish:parts": "tsx scripts/import-parts-xlsx.ts --publish",
     "seed": "tsx supabase/seed.ts"
   },
   "dependencies": {
@@ -16,7 +18,8 @@
     "next": "16.2.7",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "vercel": "^54.12.2"
+    "vercel": "^54.12.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -2,7 +2,18 @@ import Link from "next/link";
 import { CATEGORIES, COND, HOSTS } from "@/app/_lib/taxonomy";
 import type { AdminPart } from "@/app/_lib/types";
 
-const LIFECYCLES = ["Active", "Mature", "Phase-Out", "Discontinued", "Obsolete"];
+const LIFECYCLES = [
+  "Active",
+  "Active(aftermkt)",
+  "Mature",
+  "Phase-Out",
+  "Discontinued",
+  "Successor Available",
+  "Obsolete",
+];
+const IMAGE_STATUSES = ["missing", "pending_review", "approved", "rejected"];
+
+const lines = (values?: string[]) => values?.join("\n") ?? "";
 
 export function ProductForm({
   action,
@@ -71,21 +82,6 @@ export function ProductForm({
 
       <div className="grid3">
         <div className="field">
-          <label>Refurb low (USD)</label>
-          <input name="refurb_low" type="number" min="0" defaultValue={part?.refurb[0] ?? 0} />
-        </div>
-        <div className="field">
-          <label>Refurb high (USD)</label>
-          <input name="refurb_high" type="number" min="0" defaultValue={part?.refurb[1] ?? 0} />
-        </div>
-        <div className="field">
-          <label>OEM list (USD)</label>
-          <input name="oem" type="number" min="0" defaultValue={part?.oem ?? 0} />
-        </div>
-      </div>
-
-      <div className="grid3">
-        <div className="field">
           <label>Availability</label>
           <select name="stock" defaultValue={part?.stock ?? "request"}>
             <option value="request">Source on request</option>
@@ -99,6 +95,36 @@ export function ProductForm({
         <div className="field">
           <label>Lead time</label>
           <input name="lead" defaultValue={part?.lead ?? ""} placeholder="e.g. 5–9 days" />
+        </div>
+      </div>
+
+      <div className="grid3">
+        <div className="field">
+          <label>Excel category L1</label>
+          <input name="category_l1" defaultValue={part?.categoryL1 ?? ""} placeholder="e.g. Drive" />
+        </div>
+        <div className="field">
+          <label>Excel category L2</label>
+          <input name="category_l2" defaultValue={part?.categoryL2 ?? ""} placeholder="e.g. Servo Amplifier" />
+        </div>
+        <div className="field">
+          <label>Availability label</label>
+          <input name="availability_label" defaultValue={part?.availabilityLabel ?? ""} placeholder="e.g. Refurb Only" />
+        </div>
+      </div>
+
+      <div className="grid3">
+        <div className="field">
+          <label>Series</label>
+          <input name="series" defaultValue={part?.series ?? ""} placeholder="e.g. A06B-6079" />
+        </div>
+        <div className="field">
+          <label>Equipment type</label>
+          <input name="equipment_type" defaultValue={part?.equipmentType ?? ""} placeholder="e.g. Robot" />
+        </div>
+        <div className="field">
+          <label>Controller generation</label>
+          <input name="controller_generation" defaultValue={part?.controllerGeneration ?? ""} placeholder="Legacy / Current" />
         </div>
       </div>
 
@@ -120,17 +146,109 @@ export function ProductForm({
 
       <div className="grid2">
         <div className="field">
-          <label>Supplier notes (internal)</label>
+          <label>Alternative part numbers</label>
           <textarea
-            name="supplier_notes"
-            defaultValue={part?.supplierNotes ?? ""}
-            placeholder="Where to source, contacts, reference links…"
+            name="alternative_pns"
+            defaultValue={lines(part?.alternativePns)}
+            placeholder="One part number per line"
           />
         </div>
         <div className="field">
-          <label>Resale reference (USD, internal)</label>
-          <input name="resale_ref" type="number" min="0" defaultValue={part?.resaleRef ?? ""} />
+          <label>Failure keywords</label>
+          <textarea
+            name="failure_keywords"
+            defaultValue={lines(part?.failureKeywords)}
+            placeholder="One keyword per line"
+          />
         </div>
+      </div>
+
+      <div className="grid2">
+        <div className="field">
+          <label>Compatible controllers</label>
+          <textarea
+            name="compatible_controllers"
+            defaultValue={lines(part?.compatibleControllers)}
+            placeholder="One controller/platform per line"
+          />
+        </div>
+        <div className="field">
+          <label>Compatible robot models</label>
+          <textarea
+            name="compatible_robot_models"
+            defaultValue={lines(part?.compatibleRobotModels)}
+            placeholder="One robot model per line"
+          />
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Korean description</label>
+        <textarea
+          name="description_kr"
+          defaultValue={part?.descriptionKr ?? ""}
+          placeholder="Imported Korean description or admin notes for translation"
+        />
+      </div>
+
+      <div className="grid3">
+        <div className="field">
+          <label>Image URL</label>
+          <input name="image_url" defaultValue={part?.imageUrl ?? ""} placeholder="https://..." />
+        </div>
+        <div className="field">
+          <label>Image storage path</label>
+          <input name="image_storage_path" defaultValue={part?.imageStoragePath ?? ""} placeholder="product-images/..." />
+        </div>
+        <div className="field">
+          <label>Image status</label>
+          <select name="image_status" defaultValue={part?.imageStatus ?? "missing"}>
+            {IMAGE_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid3">
+        <div className="field">
+          <label>Demand score</label>
+          <input name="demand_score" type="number" defaultValue={part?.demandScore ?? ""} />
+        </div>
+        <div className="field">
+          <label>Scarcity score</label>
+          <input name="scarcity_score" type="number" defaultValue={part?.scarcityScore ?? ""} />
+        </div>
+        <div className="field">
+          <label>Sales priority score</label>
+          <input name="sales_priority_score" type="number" defaultValue={part?.salesPriorityScore ?? ""} />
+        </div>
+      </div>
+
+      <div className="grid2">
+        <div className="field">
+          <label>Sales priority grade</label>
+          <input name="sales_priority_grade" defaultValue={part?.salesPriorityGrade ?? ""} placeholder="S / A / B / C" />
+        </div>
+        <div className="field">
+          <label>Source URLs</label>
+          <textarea
+            name="source_urls"
+            defaultValue={lines(part?.sourceUrls)}
+            placeholder="One URL per line"
+          />
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Admin notes (internal)</label>
+        <textarea
+          name="admin_notes"
+          defaultValue={part?.adminNotes ?? ""}
+          placeholder="Where to source, image review notes, internal context…"
+        />
       </div>
 
       <label className="admin-toggle">

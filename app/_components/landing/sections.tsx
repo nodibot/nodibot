@@ -84,7 +84,7 @@ export function Pillars() {
 const VALUES = [
   { icon: <Ic.shield />, t: "Verified-refurb guarantee", d: "Every unit is bench-tested and ships with a 6-month functional warranty. No payment until you approve the quote." },
   { icon: <Ic.clock />, t: "Quotes in under 2 hours", d: "A live sourcing desk, not an inbox. Flag a line-down emergency and it jumps the queue." },
-  { icon: <Ic.tag />, t: "Transparent pricing", d: "We show our refurbished range against the OEM brand-new list — so you see exactly what you save." },
+  { icon: <Ic.tag />, t: "RFQ-first sourcing", d: "No public cart pricing. We confirm availability, testing status, lead time and quote after checking the exact part." },
   { icon: <Ic.link />, t: "Cross-compatibility checked", d: "Each part is mapped to the host controllers and the robot arms it drives, so you order with confidence." },
 ];
 
@@ -110,18 +110,18 @@ export function WhyNodibot() {
   );
 }
 
-export function PriceTransparency() {
+export function SourcingConfidence() {
   return (
     <section className="lp-section">
       <div className="wrap">
         <div className="lp-price-grid">
           <div>
-            <div className="lp-eyebrow">Price transparency</div>
-            <h2 className="lp-h2">See the OEM price. Pay a fraction.</h2>
+            <div className="lp-eyebrow">Sourcing confidence</div>
+            <h2 className="lp-h2">Confirm the right part before you buy.</h2>
             <p className="lp-lead">
-              Legacy parts carry brutal OEM lead times and list prices. We surface both numbers on
-              every product so the savings are never a mystery — and the final figure is confirmed
-              on your quote before anything ships.
+              Legacy automation parts are messy: superseded models, repair-only stock, and
+              compatibility traps. We keep the catalog focused on identification and RFQ so your
+              quote is checked against the exact controller, robot model, and urgency.
             </p>
             <Link className="btn btn-dark btn-lg" style={{ marginTop: 26 }} href="/catalog">
               Browse the catalog <Ic.arrowR />
@@ -148,25 +148,25 @@ export function PriceTransparency() {
               <span className="badge badge-life">Discontinued</span>
             </div>
             <div className="lp-compare-body">
-              <div className="lp-compare-row oem">
+              <div className="lp-compare-row muted">
                 <span className="lbl">
                   <span className="dotc" style={{ background: "var(--muted)" }} />
-                  OEM brand-new
+                  Compatibility
                 </span>
-                <span className="amt">$7,500</span>
+                <span className="amt">IRC5</span>
               </div>
               <div className="lp-compare-row">
                 <span className="lbl">
                   <span className="dotc" style={{ background: "var(--accent)" }} />
-                  nodibot refurbished
+                  Availability
                 </span>
                 <span className="amt" style={{ color: "var(--accent)" }}>
-                  $1,100–1,800
+                  RFQ ready
                 </span>
               </div>
             </div>
             <div className="lp-compare-foot">
-              <Ic.tag style={{ width: 16, height: 16 }} /> Save up to 81% vs. OEM list
+              <Ic.tag style={{ width: 16, height: 16 }} /> Quote confirmed after sourcing review
             </div>
           </div>
         </div>

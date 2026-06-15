@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { PartImage, StockBadge, LifeBadge } from "@/app/_components/badges";
 import { Ic } from "@/app/_components/icons";
-import { priceRange } from "@/app/_lib/format";
 import type { Part } from "@/app/_lib/types";
 
 export function ProductCard({ part }: { part: Part }) {
@@ -19,9 +18,9 @@ export function ProductCard({ part }: { part: Part }) {
           <LifeBadge life={part.life} />
         </div>
         <div className="card-meta">
-          <div className="card-price">
-            <span className="cur">refurb </span>
-            {priceRange(part.refurb)}
+          <div className="card-price quote">
+            <span className="cur">{part.availabilityLabel ?? "RFQ"}</span>
+            Request quote
           </div>
           <span style={{ color: "var(--accent)", display: "flex" }}>
             <Ic.arrowR style={{ width: 18, height: 18 }} />
@@ -47,8 +46,8 @@ export function ProductListItem({ part }: { part: Part }) {
       </div>
       <div className="part-row-side">
         <div className="part-row-price">
-          <span>refurb</span>
-          {priceRange(part.refurb)}
+          <span>{part.availabilityLabel ?? "RFQ"}</span>
+          Request quote
         </div>
         <Ic.arrowR />
       </div>

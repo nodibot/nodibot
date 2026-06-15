@@ -11,9 +11,9 @@ function needsSourcing(p: AdminPart): boolean {
 export default async function DemandPage() {
   const parts = (await getAllParts())
     .filter((p) => p.isActive)
-    .sort((a, b) => b.views - a.views);
+    .sort((a, b) => (b.demandScore ?? b.views) - (a.demandScore ?? a.views));
 
-  const maxViews = Math.max(1, ...parts.map((p) => p.views));
+  const maxDemand = Math.max(1, ...parts.map((p) => p.demandScore ?? p.views));
   const totalViews = parts.reduce((sum, p) => sum + p.views, 0);
   const toSource = parts.filter(needsSourcing);
 
@@ -54,6 +54,7 @@ export default async function DemandPage() {
                   <th>Brand</th>
                   <th>Category</th>
                   <th>Demand</th>
+                  <th>Scarcity</th>
                   <th>On hand</th>
                   <th>Action</th>
                 </tr>
@@ -69,15 +70,18 @@ export default async function DemandPage() {
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <div
                           className="demand-bar"
-                          style={{ ["--w" as string]: `${Math.round((p.views / maxViews) * 100)}%` }}
+                          style={{
+                            ["--w" as string]: `${Math.round(((p.demandScore ?? p.views) / maxDemand) * 100)}%`,
+                          }}
                         >
                           <span />
                         </div>
                         <span className="mono" style={{ fontSize: 12 }}>
-                          {p.views}
+                          {p.demandScore ?? p.views}
                         </span>
                       </div>
                     </td>
+                    <td className="mono">{p.scarcityScore ?? "—"}</td>
                     <td>{p.stock === "in" ? `${p.qty ?? 0} in stock` : "—"}</td>
                     <td>
                       {needsSourcing(p) ? (

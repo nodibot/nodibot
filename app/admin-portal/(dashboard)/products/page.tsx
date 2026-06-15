@@ -33,6 +33,8 @@ export default async function AdminProductsPage() {
                   <th>Name</th>
                   <th>Category</th>
                   <th>Stock</th>
+                  <th>Priority</th>
+                  <th>Image</th>
                   <th>Views</th>
                   <th>Status</th>
                   <th />
@@ -51,6 +53,21 @@ export default async function AdminProductsPage() {
                       ) : (
                         <span className="badge badge-req">On request</span>
                       )}
+                    </td>
+                    <td>
+                      {p.salesPriorityGrade ? (
+                        <span className="badge badge-life">
+                          {p.salesPriorityGrade}
+                          {p.salesPriorityScore !== null ? ` · ${p.salesPriorityScore}` : ""}
+                        </span>
+                      ) : (
+                        <span className="dim">—</span>
+                      )}
+                    </td>
+                    <td>
+                      <span className={p.imageStatus === "approved" ? "badge badge-in" : "badge badge-life"}>
+                        {p.imageStatus}
+                      </span>
                     </td>
                     <td className="mono">{p.views}</td>
                     <td>

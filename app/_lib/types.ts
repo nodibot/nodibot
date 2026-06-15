@@ -12,10 +12,6 @@ export interface Part {
   brand: string;
   pn: string;
   name: string;
-  /** [low, high] refurbished price range in USD */
-  refurb: [number, number];
-  /** OEM brand-new list price in USD */
-  oem: number;
   life: string;
   cond: string;
   stock: StockState;
@@ -23,6 +19,20 @@ export interface Part {
   lead: string;
   hosts: string[];
   views: number;
+  alternativePns: string[];
+  categoryL1: string | null;
+  categoryL2: string | null;
+  series: string | null;
+  equipmentType: string | null;
+  compatibleControllers: string[];
+  compatibleRobotModels: string[];
+  controllerGeneration: string | null;
+  availabilityLabel: string | null;
+  descriptionKr: string | null;
+  failureKeywords: string[];
+  imageUrl: string | null;
+  imageStoragePath: string | null;
+  imageStatus: "missing" | "pending_review" | "approved" | "rejected";
 }
 
 // Row shape returned by Supabase for the `parts` table.
@@ -32,9 +42,6 @@ export interface PartRow {
   brand: string;
   pn: string;
   name: string;
-  refurb_low: number;
-  refurb_high: number;
-  oem: number;
   life: string;
   cond: string;
   stock: StockState;
@@ -43,6 +50,20 @@ export interface PartRow {
   hosts: string[];
   views: number;
   is_active: boolean;
+  alternative_pns: string[] | null;
+  category_l1: string | null;
+  category_l2: string | null;
+  series: string | null;
+  equipment_type: string | null;
+  compatible_controllers: string[] | null;
+  compatible_robot_models: string[] | null;
+  controller_generation: string | null;
+  availability_label: string | null;
+  description_kr: string | null;
+  failure_keywords: string[] | null;
+  image_url: string | null;
+  image_storage_path: string | null;
+  image_status: "missing" | "pending_review" | "approved" | "rejected";
 }
 
 // Payload accepted by POST /api/inquiries.
@@ -62,8 +83,12 @@ export interface InquiryInput {
 // Admin-facing part: the public Part plus the admin-only columns.
 export interface AdminPart extends Part {
   isActive: boolean;
-  supplierNotes: string | null;
-  resaleRef: number | null;
+  demandScore: number | null;
+  scarcityScore: number | null;
+  salesPriorityGrade: string | null;
+  salesPriorityScore: number | null;
+  sourceUrls: string[];
+  adminNotes: string | null;
 }
 
 // Editable fields for the product CRUD form.
@@ -72,9 +97,6 @@ export interface AdminPartInput {
   brand: string;
   pn: string;
   name: string;
-  refurb_low: number;
-  refurb_high: number;
-  oem: number;
   life: string;
   cond: string;
   stock: StockState;
@@ -82,8 +104,26 @@ export interface AdminPartInput {
   lead: string;
   hosts: string[];
   is_active: boolean;
-  supplier_notes: string | null;
-  resale_ref: number | null;
+  alternative_pns: string[];
+  category_l1: string | null;
+  category_l2: string | null;
+  series: string | null;
+  equipment_type: string | null;
+  compatible_controllers: string[];
+  compatible_robot_models: string[];
+  controller_generation: string | null;
+  availability_label: string | null;
+  description_kr: string | null;
+  failure_keywords: string[];
+  image_url: string | null;
+  image_storage_path: string | null;
+  image_status: "missing" | "pending_review" | "approved" | "rejected";
+  demand_score: number | null;
+  scarcity_score: number | null;
+  sales_priority_grade: string | null;
+  sales_priority_score: number | null;
+  source_urls: string[];
+  admin_notes: string | null;
 }
 
 // A row from the `inquiries` table (admin CRM).
@@ -105,16 +145,24 @@ export interface Inquiry {
 }
 
 interface AdminPartRow extends PartRow {
-  supplier_notes: string | null;
-  resale_ref: number | null;
+  demand_score: number | null;
+  scarcity_score: number | null;
+  sales_priority_grade: string | null;
+  sales_priority_score: number | null;
+  source_urls: string[] | null;
+  admin_notes: string | null;
 }
 
 export function rowToAdminPart(row: AdminPartRow): AdminPart {
   return {
     ...rowToPart(row),
     isActive: row.is_active,
-    supplierNotes: row.supplier_notes,
-    resaleRef: row.resale_ref,
+    demandScore: row.demand_score,
+    scarcityScore: row.scarcity_score,
+    salesPriorityGrade: row.sales_priority_grade,
+    salesPriorityScore: row.sales_priority_score,
+    sourceUrls: row.source_urls ?? [],
+    adminNotes: row.admin_notes,
   };
 }
 
@@ -125,8 +173,6 @@ export function rowToPart(row: PartRow): Part {
     brand: row.brand,
     pn: row.pn,
     name: row.name,
-    refurb: [row.refurb_low, row.refurb_high],
-    oem: row.oem,
     life: row.life,
     cond: row.cond,
     stock: row.stock,
@@ -134,5 +180,19 @@ export function rowToPart(row: PartRow): Part {
     lead: row.lead,
     hosts: row.hosts ?? [],
     views: row.views,
+    alternativePns: row.alternative_pns ?? [],
+    categoryL1: row.category_l1,
+    categoryL2: row.category_l2,
+    series: row.series,
+    equipmentType: row.equipment_type,
+    compatibleControllers: row.compatible_controllers ?? [],
+    compatibleRobotModels: row.compatible_robot_models ?? [],
+    controllerGeneration: row.controller_generation,
+    availabilityLabel: row.availability_label,
+    descriptionKr: row.description_kr,
+    failureKeywords: row.failure_keywords ?? [],
+    imageUrl: row.image_url,
+    imageStoragePath: row.image_storage_path,
+    imageStatus: row.image_status ?? "missing",
   };
 }

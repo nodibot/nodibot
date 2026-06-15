@@ -1,30 +1,20 @@
 // Product-detail sub-sections (server components). Ported from product.jsx.
 import { Ic } from "@/app/_components/icons";
-import { fmt, priceRange, savePct } from "@/app/_lib/format";
 import { CAT_LABEL, COND, HOST_BY_ID } from "@/app/_lib/taxonomy";
 import type { Part } from "@/app/_lib/types";
 
-export function PriceBlock({ part }: { part: Part }) {
-  const pct = savePct(part.refurb, part.oem);
+export function AvailabilityPanel({ part }: { part: Part }) {
+  const availability = part.availabilityLabel ?? (part.stock === "in" ? "In stock" : "Source on request");
   return (
     <div className="price-block">
-      <div className="price-rows">
-        <div className="price-cell">
-          <div className="lbl">
-            <Ic.shield style={{ width: 13, height: 13, color: "var(--accent)" }} /> nodibot refurbished
-          </div>
-          <div className="val">{priceRange(part.refurb)}</div>
-        </div>
-        <div className="price-divider" />
-        <div className="price-cell oem">
-          <div className="lbl">OEM brand-new</div>
-          <div className="val">{fmt(part.oem)}</div>
-        </div>
+      <div className="compat-h" style={{ marginBottom: 10 }}>
+        <Ic.bolt /> Request-for-quote availability
       </div>
-      <div className="price-save">
-        <Ic.tag style={{ width: 15, height: 15, color: "var(--in-stock)" }} />
+      <div className="price-save" style={{ marginTop: 0, paddingTop: 0, borderTop: 0 }}>
+        <Ic.shield style={{ width: 15, height: 15, color: "var(--in-stock)" }} />
         <span>
-          <strong>Save up to {pct}%</strong> vs. OEM list — final price confirmed on your quote.
+          <strong>{availability}</strong> · Send the part number and requirements. We confirm
+          sourcing, testing status, lead time, and quote before any order.
         </span>
       </div>
     </div>
@@ -59,6 +49,24 @@ export function Compat({ part }: { part: Part }) {
       </div>
       <div className="compat-sub">Verified to fit these host systems and the arms they drive.</div>
       <div className="compat-list">
+        {part.compatibleControllers.length > 0 && (
+          <div className="compat-row">
+            <div className="h">
+              <div className="b">Controllers</div>
+              <div className="s mono">from product data</div>
+            </div>
+            <div className="arms">{part.compatibleControllers.join(", ")}</div>
+          </div>
+        )}
+        {part.compatibleRobotModels.length > 0 && (
+          <div className="compat-row">
+            <div className="h">
+              <div className="b">Robot models</div>
+              <div className="s mono">matched models</div>
+            </div>
+            <div className="arms">{part.compatibleRobotModels.join(", ")}</div>
+          </div>
+        )}
         {hosts.map((h) => (
           <div className="compat-row" key={h.id}>
             <div className="h">
@@ -76,10 +84,19 @@ export function Compat({ part }: { part: Part }) {
 export function Specs({ part }: { part: Part }) {
   const rows: [string, string, boolean][] = [
     ["Part number", part.pn, true],
+    ...(part.alternativePns.length > 0
+      ? [["Alternative P/N", part.alternativePns.join(", "), true] as [string, string, boolean]]
+      : []),
     ["Manufacturer", part.brand, false],
     ["Category", CAT_LABEL[part.cat], false],
+    ...(part.categoryL2 ? [["Subcategory", part.categoryL2, false] as [string, string, boolean]] : []),
+    ...(part.series ? [["Series", part.series, true] as [string, string, boolean]] : []),
+    ...(part.equipmentType ? [["Equipment type", part.equipmentType, false] as [string, string, boolean]] : []),
     ["Condition", COND[part.cond] ?? part.cond, false],
     ["Lifecycle status", part.life, false],
+    ...(part.controllerGeneration
+      ? [["Controller generation", part.controllerGeneration, false] as [string, string, boolean]]
+      : []),
     ["Lead time", part.lead, false],
     ["Warranty", "6 months · functional guarantee", false],
   ];

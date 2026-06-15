@@ -9,8 +9,6 @@ function part(over: Partial<Part>): Part {
     brand: "Siemens",
     pn: "6ES7315-2AH14-0AB0",
     name: "CPU 315-2 DP",
-    refurb: [800, 1200],
-    oem: 2800,
     life: "Active",
     cond: "refurb",
     stock: "request",
@@ -18,6 +16,20 @@ function part(over: Partial<Part>): Part {
     lead: "3-6 days",
     hosts: ["siemens"],
     views: 100,
+    alternativePns: [],
+    categoryL1: null,
+    categoryL2: null,
+    series: null,
+    equipmentType: null,
+    compatibleControllers: [],
+    compatibleRobotModels: [],
+    controllerGeneration: null,
+    availabilityLabel: null,
+    descriptionKr: null,
+    failureKeywords: [],
+    imageUrl: null,
+    imageStoragePath: null,
+    imageStatus: "missing",
     ...over,
   };
 }
@@ -66,17 +78,17 @@ describe("filterParts", () => {
 
 describe("sortParts", () => {
   const parts = [
-    part({ id: "lo", views: 10, refurb: [100, 200] }),
-    part({ id: "hi", views: 900, refurb: [3000, 4000] }),
+    part({ id: "lo", brand: "ABB", cat: "motion", views: 10 }),
+    part({ id: "hi", brand: "Fanuc", cat: "controllers", views: 900 }),
   ];
   it("sorts by demand (views desc)", () => {
     expect(sortParts(parts, "demand").map((p) => p.id)).toEqual(["hi", "lo"]);
   });
-  it("sorts by price low to high (midpoint)", () => {
-    expect(sortParts(parts, "price-lo").map((p) => p.id)).toEqual(["lo", "hi"]);
+  it("sorts by brand alphabetically", () => {
+    expect(sortParts(parts, "brand").map((p) => p.id)).toEqual(["lo", "hi"]);
   });
-  it("sorts by price high to low", () => {
-    expect(sortParts(parts, "price-hi").map((p) => p.id)).toEqual(["hi", "lo"]);
+  it("sorts by category alphabetically", () => {
+    expect(sortParts(parts, "category").map((p) => p.id)).toEqual(["hi", "lo"]);
   });
 });
 

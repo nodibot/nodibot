@@ -7,7 +7,7 @@ import { Footer } from "@/app/_components/footer";
 import { Ic } from "@/app/_components/icons";
 import { PartImage, StockBadge, LifeBadge } from "@/app/_components/badges";
 import { ProductCard, ProductListItem } from "@/app/_components/catalog/ProductCard";
-import { Specs, Compat, PriceBlock, TrustStrip } from "@/app/_components/product/sections";
+import { Specs, Compat, AvailabilityPanel, TrustStrip } from "@/app/_components/product/sections";
 import { ViewCounter } from "@/app/_components/product/ViewCounter";
 import { RfqForm } from "@/app/_components/rfq/RfqForm";
 import { getActiveParts, getPartByPn } from "@/app/_lib/parts";
@@ -26,7 +26,7 @@ export async function generateMetadata({
   const title = `${part.brand} ${part.pn} — ${part.name}`;
   return {
     title,
-    description: `${part.brand} ${part.pn}: ${part.name}. Tested secondary-market unit (${part.life}). Request an availability quote from nodibot — verified refurb, 6-month warranty.`,
+    description: `${part.brand} ${part.pn}: ${part.name}. ${part.life}. Request sourcing, testing status, lead time, and availability from nodibot.`,
     alternates: { canonical: `/products/${encodeURIComponent(part.pn)}` },
     openGraph: { title, type: "website" },
   };
@@ -115,7 +115,7 @@ export default async function ProductPage({
               <span className="badge badge-life">{COND[part.cond] ?? part.cond}</span>
             </div>
 
-            <PriceBlock part={part} />
+            <AvailabilityPanel part={part} />
             <TrustStrip />
 
             <div

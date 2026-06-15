@@ -7,7 +7,7 @@ import {
   HowItWorks,
   Pillars,
   WhyNodibot,
-  PriceTransparency,
+  SourcingConfidence,
   EmergencyBand,
   FinalCta,
 } from "@/app/_components/landing/sections";
@@ -21,7 +21,7 @@ export default function LandingPage() {
       <HowItWorks />
       <Pillars />
       <WhyNodibot />
-      <PriceTransparency />
+      <SourcingConfidence />
       <EmergencyBand />
       <FinalCta />
       <Footer />

@@ -3,7 +3,7 @@ import { getSupabase } from "./supabase";
 import { rowToPart, type Part, type PartRow } from "./types";
 
 const PART_COLUMNS =
-  "id, cat, brand, pn, name, refurb_low, refurb_high, oem, life, cond, stock, qty, lead, hosts, views, is_active";
+  "id, cat, brand, pn, name, life, cond, stock, qty, lead, hosts, views, is_active, alternative_pns, category_l1, category_l2, series, equipment_type, compatible_controllers, compatible_robot_models, controller_generation, availability_label, description_kr, failure_keywords, image_url, image_storage_path, image_status";
 
 // All active parts, highest demand first. Memoized per request.
 export const getActiveParts = cache(async (): Promise<Part[]> => {

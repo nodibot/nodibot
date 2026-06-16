@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getLeads } from "@/app/_lib/outreach/queries";
 import { AddLeadForm } from "./AddLeadForm";
 import { ImportLeadsForm } from "./ImportLeadsForm";
+import { LeadsTable } from "./LeadsTable";
 
 export default async function OutreachPage() {
   const leads = await getLeads();
@@ -33,26 +34,7 @@ export default async function OutreachPage() {
 
         <section>
           <h2>Leads</h2>
-          {leads.length === 0 ? (
-            <div className="admin-empty">No leads yet. Add one or import a CSV.</div>
-          ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr><th style={{ textAlign: "left" }}>Company</th><th style={{ textAlign: "left" }}>Email</th><th style={{ textAlign: "left" }}>Part</th><th style={{ textAlign: "left" }}>Status</th><th style={{ textAlign: "left" }}>Last sent</th></tr>
-              </thead>
-              <tbody>
-                {leads.map((l) => (
-                  <tr key={l.id} style={{ borderTop: "1px solid #eee" }}>
-                    <td>{l.company}{l.contact_name ? ` · ${l.contact_name}` : ""}</td>
-                    <td>{l.email}</td>
-                    <td>{l.part_number ?? "—"}</td>
-                    <td>{l.status}</td>
-                    <td>{l.last_sent_at ? new Date(l.last_sent_at).toLocaleDateString() : "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          <LeadsTable leads={leads} />
         </section>
       </div>
     </>

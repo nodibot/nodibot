@@ -1,9 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addLead, importLeads, saveSettings, saveTemplate } from "@/app/_lib/outreach/queries";
+import { createGmailSender } from "@/app/_lib/gmail";
+import { createSupabaseServerClient } from "@/app/_lib/supabase-server";
+import { addLead, getLeadsByIds, importLeads, saveSettings, saveTemplate } from "@/app/_lib/outreach/queries";
 import { parseLeadsCsv } from "@/app/_lib/outreach/csv";
+import { sendOutreachToLead, sleep } from "@/app/_lib/outreach/send";
 import type { TemplateKind } from "@/app/_lib/outreach/types";
+
+export type SendLeadsResult = { sent: number; failed: number; errors: string[] };
 
 export async function addLeadAction(formData: FormData) {
   await addLead({
@@ -52,4 +57,45 @@ export async function saveSettingsAction(formData: FormData) {
     paused: formData.get("paused") === "on",
   });
   revalidatePath("/admin-portal/outreach/settings");
+}
+
+export async function sendLeadsAction(leadIds: string[]): Promise<SendLeadsResult> {
+  if (leadIds.length === 0) return { sent: 0, failed: 0, errors: [] };
+
+  let sender;
+  try {
+    sender = createGmailSender();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Gmail not configured";
+    return { sent: 0, failed: leadIds.length, errors: [message] };
+  }
+
+  const leads = await getLeadsByIds(leadIds);
+  const byId = new Map(leads.map((l) => [l.id, l]));
+  const supabase = await createSupabaseServerClient();
+
+  let sent = 0;
+  let failed = 0;
+  const errors: string[] = [];
+
+  for (let i = 0; i < leadIds.length; i++) {
+    const lead = byId.get(leadIds[i]);
+    if (!lead) {
+      failed++;
+      errors.push(`Lead not found: ${leadIds[i]}`);
+      continue;
+    }
+
+    const result = await sendOutreachToLead(supabase, sender, lead);
+    if (result.ok) sent++;
+    else {
+      failed++;
+      errors.push(result.error);
+    }
+
+    if (i < leadIds.length - 1) await sleep(2000 + Math.floor(Math.random() * 4000));
+  }
+
+  revalidatePath("/admin-portal/outreach");
+  return { sent, failed, errors };
 }

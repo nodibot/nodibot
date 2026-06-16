@@ -15,6 +15,14 @@ export async function getLeads(): Promise<OutreachLead[]> {
   return (data ?? []) as OutreachLead[];
 }
 
+export async function getLeadsByIds(ids: string[]): Promise<OutreachLead[]> {
+  if (ids.length === 0) return [];
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.from("outreach_leads").select("*").in("id", ids);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as OutreachLead[];
+}
+
 export async function getTemplates(): Promise<EmailTemplate[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from("email_templates").select("*").order("created_at");

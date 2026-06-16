@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/app/_components/header";
 import { Footer } from "@/app/_components/footer";
-// import { WaFloat } from "@/app/_components/wa-float"; // WhatsApp disabled for now
+import { WaFloat } from "@/app/_components/wa-float";
 import { Ic } from "@/app/_components/icons";
 import { PartImage, StockBadge, LifeBadge } from "@/app/_components/badges";
 import { ProductCard, ProductListItem } from "@/app/_components/catalog/ProductCard";
@@ -141,7 +141,7 @@ export default async function ProductPage({
       </div>
 
       <Footer />
-      {/* <WaFloat partPn={part.pn} /> WhatsApp disabled for now */}
+      <WaFloat partPn={part.pn} />
     </div>
   );
 }

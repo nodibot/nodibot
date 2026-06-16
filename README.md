@@ -23,6 +23,10 @@ Copy `.env.example` to `.env.local` and fill in the values:
 cp .env.example .env.local
 ```
 
+Set `NEXT_PUBLIC_WHATSAPP_URL` to your WhatsApp Business click-to-chat URL
+(`https://wa.me/<country><number>`, digits only). This powers the floating **Chat to source** button and the landing
+page WhatsApp CTAs.
+
 ### 3. Apply the schema
 
 In the Supabase **SQL Editor**, run the contents of

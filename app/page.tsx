@@ -1,6 +1,6 @@
 import { Header } from "@/app/_components/header";
 import { Footer } from "@/app/_components/footer";
-// import { WaFloat } from "@/app/_components/wa-float"; // WhatsApp disabled for now
+import { WaFloat } from "@/app/_components/wa-float";
 import { LandingHero } from "@/app/_components/landing/LandingHero";
 import {
   HostStrip,
@@ -25,7 +25,7 @@ export default function LandingPage() {
       <EmergencyBand />
       <FinalCta />
       <Footer />
-      {/* <WaFloat /> WhatsApp disabled for now */}
+      <WaFloat />
     </div>
   );
 }

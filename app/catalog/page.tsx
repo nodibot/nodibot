@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Header } from "@/app/_components/header";
 import { Footer } from "@/app/_components/footer";
-// import { WaFloat } from "@/app/_components/wa-float"; // WhatsApp disabled for now
+import { WaFloat } from "@/app/_components/wa-float";
 import { CatalogView } from "@/app/_components/catalog/CatalogView";
 import { getActiveParts } from "@/app/_lib/parts";
 
@@ -24,7 +24,7 @@ export default async function CatalogPage({
       <Header variant="app" initialQuery={q ?? ""} />
       <CatalogView parts={parts} initialQuery={q ?? ""} initialCat={cat ?? null} />
       <Footer />
-      {/* <WaFloat /> WhatsApp disabled for now */}
+      <WaFloat />
     </div>
   );
 }

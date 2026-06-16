@@ -1,6 +1,7 @@
 // Static marketing sections for the landing page (server components).
 import Link from "next/link";
 import { Ic } from "@/app/_components/icons";
+import { WaChatLink } from "@/app/_components/WaChatLink";
 import { CATEGORIES, HOSTS } from "@/app/_lib/taxonomy";
 
 export function HostStrip() {
@@ -186,9 +187,9 @@ export function EmergencyBand() {
             start hunting immediately.
           </p>
           <div className="cta-row">
-            <Link className="btn btn-wa btn-lg" href="/catalog">
+            <WaChatLink className="btn btn-wa btn-lg">
               <Ic.whatsapp /> Chat to source now
-            </Link>
+            </WaChatLink>
             <Link
               className="btn btn-lg"
               style={{

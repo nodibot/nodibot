@@ -10,7 +10,9 @@
     "test": "vitest run",
     "import:parts": "tsx scripts/import-parts-xlsx.ts",
     "publish:parts": "tsx scripts/import-parts-xlsx.ts --publish",
-    "seed": "tsx supabase/seed.ts"
+    "seed": "tsx supabase/seed.ts",
+    "images:match": "tsx scripts/match-product-images.ts",
+    "images:upload": "tsx scripts/upload-product-images.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

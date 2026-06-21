@@ -112,9 +112,6 @@ export function Header({
           )}
           <span className="divider-v" />
           <ThemeToggle dark={dark} toggle={toggle} />
-          <Link href="/catalog" className="btn btn-dark btn-sm">
-            <Ic.bolt style={{ width: 15, height: 15 }} /> Get a quote
-          </Link>
         </div>
       </div>
     </header>

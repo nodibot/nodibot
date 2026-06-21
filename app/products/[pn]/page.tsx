@@ -45,6 +45,10 @@ export default async function ProductPage({
   const allParts = await getActiveParts();
   const related = allParts.filter((p) => p.cat === part.cat && p.id !== part.id).slice(0, 4);
 
+  // One image per part today; the gallery scales up if that ever changes.
+  const galleryImages =
+    part.imageStatus === "approved" && part.imageUrl ? [part.imageUrl] : [];
+
   return (
     <div className="app">
       <Header variant="app" />
@@ -72,13 +76,17 @@ export default async function ProductPage({
               <div className="pdp-img">
                 <PartImage part={part} />
               </div>
-              <div className="pdp-thumbs">
-                {[0, 1, 2, 3].map((i) => (
-                  <div className="pdp-thumb" key={i}>
-                    <PartImage part={part} />
-                  </div>
-                ))}
-              </div>
+              {/* Parts currently have a single image; the thumbnail strip only
+                  appears if a part ever carries more than one. */}
+              {galleryImages.length > 1 && (
+                <div className="pdp-thumbs">
+                  {galleryImages.map((src) => (
+                    <div className="pdp-thumb" key={src}>
+                      <PartImage part={part} />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={{ marginTop: 34 }}>

@@ -192,7 +192,7 @@ export function TrafficCharts({
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               />
-              <MapControls />
+              {/* <MapControls /> */}
               <MarkerClusterGroup
                 chunkedLoading
                 iconCreateFunction={(cluster: L.MarkerCluster) => {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getAnalyticsOverview, type AnalyticsEventFilter } from "@/app/_lib/admin";
-import { TrafficCharts } from "./TrafficCharts";
+import { TrafficChartsClient } from "./TrafficChartsClient";
 
 function pct(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
@@ -16,6 +16,14 @@ function EventLabel({ eventName }: { eventName: string }) {
     whatsapp_click: "WhatsApp click",
   };
   return <>{map[eventName] ?? eventName}</>;
+}
+
+const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+
+function formatCountryLabel(code: string): string {
+  const normalized = code.toUpperCase();
+  const name = regionNames.of(normalized);
+  return name ? `${normalized} (${name})` : normalized;
 }
 
 export default async function TrafficAnalyticsPage({
@@ -82,7 +90,7 @@ export default async function TrafficAnalyticsPage({
           ))}
         </div>
 
-        <TrafficCharts
+        <TrafficChartsClient
           dailySeries={analytics.dailySeries}
           eventBreakdown={analytics.eventBreakdown}
           topCountries={analytics.topCountries}
@@ -222,7 +230,7 @@ export default async function TrafficAnalyticsPage({
                 analytics.topCountries.map((row, i) => (
                   <tr key={row.countryCode}>
                     <td>{i + 1}</td>
-                    <td className="mono">{row.countryCode}</td>
+                    <td className="mono">{formatCountryLabel(row.countryCode)}</td>
                     <td>{row.count}</td>
                   </tr>
                 ))

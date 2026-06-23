@@ -190,6 +190,15 @@ interface AnalyticsOptions {
   eventFilter?: AnalyticsEventFilter;
 }
 
+function decodeMaybe(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function filterRowsByEvent<T extends { event_name: string }>(
   rows: T[],
   eventFilter: AnalyticsEventFilter,
@@ -307,8 +316,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
 
   const topCountries = [...countryCounts.entries()]
     .map(([countryCode, count]) => ({ countryCode, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+    .sort((a, b) => b.count - a.count);
 
   const topConvertingParts = [...allPartClicks.entries()]
     .map(([partPn, clicks]) => {
@@ -339,9 +347,9 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     query: row.query,
     pagePath: row.page_path,
     channel: row.channel,
-    countryCode: row.country_code,
-    region: row.region,
-    city: row.city,
+    countryCode: decodeMaybe(row.country_code),
+    region: decodeMaybe(row.region),
+    city: decodeMaybe(row.city),
   }));
 
   const productClicks = allRows.filter((r) => r.event_name === "catalog_item_click").length;

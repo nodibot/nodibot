@@ -34,6 +34,15 @@ function firstForwardedIp(value: string | null): string | null {
   return ip || null;
 }
 
+function decodeHeaderValue(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function hashIp(ip: string | null): string | null {
   if (!ip) return null;
   const salt = process.env.ANALYTICS_IP_HASH_SALT ?? "";
@@ -54,11 +63,11 @@ export async function POST(request: Request) {
 
   try {
     const countryCode =
-      request.headers.get("x-vercel-ip-country") ??
-      request.headers.get("cf-ipcountry") ??
+      decodeHeaderValue(request.headers.get("x-vercel-ip-country")) ??
+      decodeHeaderValue(request.headers.get("cf-ipcountry")) ??
       null;
-    const region = request.headers.get("x-vercel-ip-country-region");
-    const city = request.headers.get("x-vercel-ip-city");
+    const region = decodeHeaderValue(request.headers.get("x-vercel-ip-country-region"));
+    const city = decodeHeaderValue(request.headers.get("x-vercel-ip-city"));
     const ipHash = hashIp(
       firstForwardedIp(
         request.headers.get("x-forwarded-for") ??

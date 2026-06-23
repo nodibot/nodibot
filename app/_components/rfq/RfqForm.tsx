@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Ic } from "@/app/_components/icons";
+import { trackEvent } from "@/app/_lib/analytics-client";
 import type { Channel, Part, Urgency } from "@/app/_lib/types";
 
 interface FormState {
@@ -102,6 +103,15 @@ export function RfqForm({ part }: { part: Part }) {
       });
       if (!res.ok) throw new Error("request failed");
       const data = (await res.json()) as { ticket: string };
+      trackEvent({
+        event_name: "rfq_submitted",
+        part_pn: part.pn,
+        channel: form.channel,
+        metadata: {
+          urgency: form.urgency,
+          qty: form.qty ? Number(form.qty) : null,
+        },
+      });
       setResult({ ticket: data.ticket });
     } catch {
       setServerError("Something went wrong sending your request. Please try again.");

@@ -130,4 +130,32 @@ To avoid spam filters during warm-up:
   up gradually each week.
 - Adjust these values under `/admin-portal/outreach/settings`.
 - Use the **paused** toggle on the settings page to halt all sending immediately if needed.
+
+## Sourcing workspace (Phase 4)
+
+Apply [`supabase/migrations/0005_sourcing.sql`](supabase/migrations/0005_sourcing.sql) after
+the outreach migration. This adds `sourcing_quotes`, an admin-only table for manual supplier
+findings tied to RFQ inquiries.
+
+In the admin portal:
+
+- Each inquiry card links to `/admin-portal/inquiries/[id]`, a sourcing workspace with
+  part context, 1688/Alibaba/Taobao/Xianyu search links, copyable search strings, and supplier
+  finding capture.
+
+## Website analytics (Phase 5)
+
+Apply [`supabase/migrations/0006_analytics.sql`](supabase/migrations/0006_analytics.sql). This
+adds a lightweight `website_events` table and enables:
+
+- Catalog click analytics (`catalog_item_click`)
+- Search / filter / sort interaction analytics
+- RFQ submit event analytics
+- WhatsApp click analytics from on-site CTA buttons
+
+View rollups in `/admin-portal/analytics-traffic` (top clicked parts, top search queries, and
+conversion-oriented event counts).
+
+For geo breakdowns (country/region/city on events), also apply
+[`supabase/migrations/0007_analytics_geo.sql`](supabase/migrations/0007_analytics_geo.sql).
  

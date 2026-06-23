@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getInquiries } from "@/app/_lib/admin";
 import type { Inquiry } from "@/app/_lib/types";
 import { STATUSES } from "./status";
@@ -11,7 +12,9 @@ function LeadCard({ lead }: { lead: Inquiry }) {
   return (
     <div className="lead-card">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-        <span className="pn">{lead.part_pn ?? "— (un-indexed part)"}</span>
+        <Link className="pn" href={`/admin-portal/inquiries/${lead.id}`}>
+          {lead.part_pn ?? "— (un-indexed part)"}
+        </Link>
         {lead.urgency === "down" && <span className="badge badge-down">Line down</span>}
       </div>
       <div className="who">{lead.name}</div>
@@ -23,6 +26,9 @@ function LeadCard({ lead }: { lead: Inquiry }) {
       </div>
       {lead.notes && <div className="notes">{lead.notes}</div>}
       <div className="lead-foot">
+        <Link className="btn btn-ghost" href={`/admin-portal/inquiries/${lead.id}`} style={{ width: "100%", marginBottom: 8 }}>
+          Source this inquiry
+        </Link>
         <StatusSelect id={lead.id} status={lead.status} />
       </div>
     </div>

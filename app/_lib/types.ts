@@ -144,6 +144,22 @@ export interface Inquiry {
   created_at: string;
 }
 
+export interface SourcingQuote {
+  id: string;
+  inquiry_id: string;
+  platform: "1688" | "alibaba" | "taobao" | "xianyu" | "wechat" | "other";
+  supplier_name: string;
+  listing_url: string;
+  contact_handle: string | null;
+  condition: string | null;
+  moq: number | null;
+  lead_time_days: number | null;
+  notes: string | null;
+  selected: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 interface AdminPartRow extends PartRow {
   demand_score: number | null;
   scarcity_score: number | null;

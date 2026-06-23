@@ -1,11 +1,26 @@
+"use client";
+
 import Link from "next/link";
 import { PartImage, StockBadge, LifeBadge } from "@/app/_components/badges";
 import { Ic } from "@/app/_components/icons";
+import { trackEvent } from "@/app/_lib/analytics-client";
 import type { Part } from "@/app/_lib/types";
 
 export function ProductCard({ part }: { part: Part }) {
+  const trackClick = (surface: "card" | "list") => {
+    trackEvent({
+      event_name: "catalog_item_click",
+      part_pn: part.pn,
+      metadata: { surface },
+    });
+  };
+
   return (
-    <Link className="card fade-in" href={`/products/${encodeURIComponent(part.pn)}`}>
+    <Link
+      className="card fade-in"
+      href={`/products/${encodeURIComponent(part.pn)}`}
+      onPointerDown={() => trackClick("card")}
+    >
       <div className="card-img">
         <PartImage part={part} />
       </div>
@@ -32,8 +47,20 @@ export function ProductCard({ part }: { part: Part }) {
 }
 
 export function ProductListItem({ part }: { part: Part }) {
+  const trackClick = (surface: "card" | "list") => {
+    trackEvent({
+      event_name: "catalog_item_click",
+      part_pn: part.pn,
+      metadata: { surface },
+    });
+  };
+
   return (
-    <Link className="part-row fade-in" href={`/products/${encodeURIComponent(part.pn)}`}>
+    <Link
+      className="part-row fade-in"
+      href={`/products/${encodeURIComponent(part.pn)}`}
+      onPointerDown={() => trackClick("list")}
+    >
       <PartImage part={part} className="part-row-img" />
       <div className="part-row-main">
         <div className="part-row-kicker">{part.brand}</div>

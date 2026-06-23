@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Ic } from "@/app/_components/icons";
+import { trackEvent } from "@/app/_lib/analytics-client";
 import { ProductCard, ProductListItem } from "./ProductCard";
 import { CATEGORIES, HOSTS } from "@/app/_lib/taxonomy";
 import {
@@ -86,6 +87,7 @@ export function CatalogView({
   const [mobileQuery, setMobileQuery] = useState(initialQuery);
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const mounted = useRef(false);
   const query = initialQuery;
 
   const toggle = (group: Group, id: string) =>
@@ -108,8 +110,35 @@ export function CatalogView({
   const activeFilterCount = sel.cats.length + sel.hosts.length + sel.stock.length;
   const goSearch = () => {
     const trimmed = mobileQuery.trim();
+    trackEvent({
+      event_name: "catalog_search",
+      query: trimmed || undefined,
+      metadata: { has_query: Boolean(trimmed) },
+    });
     router.push(trimmed ? `/catalog?q=${encodeURIComponent(trimmed)}` : "/catalog");
   };
+
+  useEffect(() => {
+    if (!mounted.current) return;
+    trackEvent({
+      event_name: "catalog_filter_change",
+      query: query || undefined,
+      metadata: { cats: sel.cats, hosts: sel.hosts, stock: sel.stock, results: results.length },
+    });
+  }, [sel, query, results.length]);
+
+  useEffect(() => {
+    if (!mounted.current) return;
+    trackEvent({
+      event_name: "catalog_sort_change",
+      query: query || undefined,
+      metadata: { sort, results: results.length },
+    });
+  }, [sort, query, results.length]);
+
+  useEffect(() => {
+    mounted.current = true;
+  }, []);
 
   return (
     <>

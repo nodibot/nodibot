@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { trackEvent } from "@/app/_lib/analytics-client";
 import { buildWhatsAppHref } from "@/app/_lib/whatsapp";
 
 type WaChatLinkProps = {
@@ -28,7 +31,13 @@ export function WaChatLink({
   }
 
   return (
-    <a className={className} href={href} target="_blank" rel="noopener noreferrer">
+    <a
+      className={className}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => trackEvent({ event_name: "whatsapp_click", part_pn: partPn, metadata: { surface: "wa_chat_link" } })}
+    >
       {children}
     </a>
   );

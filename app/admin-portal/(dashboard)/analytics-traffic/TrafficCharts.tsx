@@ -1,6 +1,7 @@
 "use client";
 
-import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line, BarChart, Bar } from "recharts";
+import { useEffect, useState } from "react";
+import { LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line, BarChart, Bar } from "recharts";
 import { WorldMap } from "react-svg-worldmap";
 import type { ISOCode } from "react-svg-worldmap";
 
@@ -15,6 +16,24 @@ type DailyRow = {
 
 type EventRow = { eventName: string; count: number };
 type CountryRow = { countryCode: string; count: number };
+
+function useMeasuredWidthById(elementId: string) {
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const node = document.getElementById(elementId);
+    if (!node) return;
+
+    const update = () => setWidth(Math.floor(node.getBoundingClientRect().width));
+    update();
+
+    const observer = new ResizeObserver(() => update());
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [elementId]);
+
+  return width;
+}
 
 function eventLabel(eventName: string): string {
   const map: Record<string, string> = {
@@ -46,37 +65,50 @@ export function TrafficCharts({
     .filter((r) => /^[A-Z]{2}$/.test(r.countryCode))
     .map((r) => ({ country: r.countryCode.toUpperCase() as ISOCode, value: r.count }));
 
+  const lineContainerId = "traffic-line-chart-container";
+  const barContainerId = "traffic-bar-chart-container";
+  const lineWidth = useMeasuredWidthById(lineContainerId);
+  const barWidth = useMeasuredWidthById(barContainerId);
+
   return (
     <div style={{ display: "grid", gap: 20, marginBottom: 20 }}>
-      <div className="admin-stat">
-        <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Daily trend</h2>
-        <div style={{ width: "100%", height: 300 }}>
-          <ResponsiveContainer>
-            <LineChart data={dailySeries}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="total" name="Total events" stroke="#3b82f6" strokeWidth={2.5} dot={false} />
-              <Line type="monotone" dataKey="rfqs" name="RFQ submits" stroke="#ef4444" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
+      <div
+        style={{
+          display: "grid",
+          gap: 20,
+          gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))",
+        }}
+      >
+        <div className="admin-stat">
+          <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Daily trend</h2>
+          <div id={lineContainerId} style={{ width: "100%", height: 300, minWidth: 0, minHeight: 300 }}>
+            {lineWidth > 0 && (
+              <LineChart width={lineWidth} height={300} data={dailySeries}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="day" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="total" name="Total events" stroke="#3b82f6" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="rfqs" name="RFQ submits" stroke="#ef4444" strokeWidth={2} />
+              </LineChart>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="admin-stat">
-        <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Event mix</h2>
-        <div style={{ width: "100%", height: 280 }}>
-          <ResponsiveContainer>
-            <BarChart data={eventMixData} layout="vertical" margin={{ left: 18 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" allowDecimals={false} />
-              <YAxis type="category" dataKey="name" width={170} />
-              <Tooltip />
-              <Bar dataKey="count" name="Events" fill="#14b8a6" />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="admin-stat">
+          <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Event mix</h2>
+          <div id={barContainerId} style={{ width: "100%", height: 300, minWidth: 0, minHeight: 300 }}>
+            {barWidth > 0 && (
+              <BarChart width={barWidth} height={300} data={eventMixData} layout="vertical" margin={{ left: 18 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" allowDecimals={false} />
+                <YAxis type="category" dataKey="name" width={170} />
+                <Tooltip />
+                <Bar dataKey="count" name="Events" fill="#14b8a6" />
+              </BarChart>
+            )}
+          </div>
         </div>
       </div>
 

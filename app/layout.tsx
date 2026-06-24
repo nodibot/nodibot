@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
+import { SITE_NAME, SITE_URL } from "@/app/_lib/seo";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -19,13 +20,46 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
   title: {
     default: "nodibot — Industrial automation parts, sourced on demand",
     template: "%s | nodibot",
   },
   description:
     "Verified secondary-market controllers, drives, teach pendants and reducers for discontinued FANUC, ABB, KUKA, Yaskawa & Siemens automation. Drop a part number — we locate, test, and quote.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "nodibot — Industrial automation parts, sourced on demand",
+    description:
+      "Find verified secondary-market industrial automation parts by exact part number. nodibot sources, tests, and quotes discontinued controllers, drives, pendants, reducers, and modules.",
+    url: "/",
+    siteName: SITE_NAME,
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+    title: "nodibot — Industrial automation parts, sourced on demand",
+    description:
+      "Search exact industrial automation part numbers and request sourcing, testing status, lead time, and availability from nodibot.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 // Applies the persisted theme before paint to avoid a flash of the wrong theme.

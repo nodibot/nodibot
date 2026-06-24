@@ -13,7 +13,6 @@ export function PartImage({ part, className }: { part: Part; className?: string 
           alt={`${part.brand} ${part.pn}`}
           fill
           sizes="(max-width: 760px) 58px, 320px"
-          unoptimized
         />
       </div>
     );

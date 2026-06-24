@@ -9,6 +9,16 @@ export const metadata: Metadata = {
   title: "Catalog — search secondary-market automation parts",
   description:
     "Search verified refurbished controllers, servo drives, teach pendants and reducers by exact part number. Filter by category, host system and availability.",
+  alternates: {
+    canonical: "/catalog",
+  },
+  openGraph: {
+    title: "Catalog — search secondary-market automation parts",
+    description:
+      "Search nodibot's catalog of verified secondary-market controllers, drives, teach pendants, reducers, and automation modules by exact part number.",
+    url: "/catalog",
+    type: "website",
+  },
 };
 
 export default async function CatalogPage({

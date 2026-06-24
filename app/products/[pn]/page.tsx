@@ -11,7 +11,13 @@ import { Specs, Compat, AvailabilityPanel, TrustStrip } from "@/app/_components/
 import { ViewCounter } from "@/app/_components/product/ViewCounter";
 import { RfqForm } from "@/app/_components/rfq/RfqForm";
 import { getActiveParts, getPartByPn } from "@/app/_lib/parts";
+import { absoluteUrl, SITE_NAME } from "@/app/_lib/seo";
 import { CAT_LABEL, COND } from "@/app/_lib/taxonomy";
+import type { Part } from "@/app/_lib/types";
+
+function productDescription(part: Part) {
+  return `${part.brand} ${part.pn}: ${part.name}. ${part.life}. Request sourcing, testing status, lead time, and availability from nodibot.`;
+}
 
 export async function generateMetadata({
   params,
@@ -23,12 +29,29 @@ export async function generateMetadata({
   if (!part) {
     return { title: "Part not found" };
   }
-  const title = `${part.brand} ${part.pn} — ${part.name}`;
+  const title = `Buy ${part.brand} ${part.pn} | ${part.name}`;
+  const description = productDescription(part);
+  const url = absoluteUrl(`/products/${encodeURIComponent(part.pn)}`);
+  const images = part.imageStatus === "approved" && part.imageUrl ? [part.imageUrl] : [];
+
   return {
     title,
-    description: `${part.brand} ${part.pn}: ${part.name}. ${part.life}. Request sourcing, testing status, lead time, and availability from nodibot.`,
+    description,
     alternates: { canonical: `/products/${encodeURIComponent(part.pn)}` },
-    openGraph: { title, type: "website" },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: SITE_NAME,
+      type: "website",
+      images,
+    },
+    twitter: {
+      card: images.length > 0 ? "summary_large_image" : "summary",
+      title,
+      description,
+      images,
+    },
   };
 }
 
@@ -48,9 +71,82 @@ export default async function ProductPage({
   // One image per part today; the gallery scales up if that ever changes.
   const galleryImages =
     part.imageStatus === "approved" && part.imageUrl ? [part.imageUrl] : [];
+  const productUrl = absoluteUrl(`/products/${encodeURIComponent(part.pn)}`);
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: `${part.brand} ${part.pn} ${part.name}`,
+    sku: part.pn,
+    mpn: part.pn,
+    brand: {
+      "@type": "Brand",
+      name: part.brand,
+    },
+    category: CAT_LABEL[part.cat] ?? part.cat,
+    description: productDescription(part),
+    image: galleryImages,
+    url: productUrl,
+    additionalProperty: [
+      { "@type": "PropertyValue", name: "Condition", value: COND[part.cond] ?? part.cond },
+      { "@type": "PropertyValue", name: "Lifecycle status", value: part.life },
+      { "@type": "PropertyValue", name: "Lead time", value: part.lead },
+      ...(part.series ? [{ "@type": "PropertyValue", name: "Series", value: part.series }] : []),
+      ...(part.controllerGeneration
+        ? [
+            {
+              "@type": "PropertyValue",
+              name: "Controller generation",
+              value: part.controllerGeneration,
+            },
+          ]
+        : []),
+    ],
+    offers: {
+      "@type": "Offer",
+      availability:
+        part.stock === "in" ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
+      itemCondition:
+        part.cond === "refurb"
+          ? "https://schema.org/RefurbishedCondition"
+          : "https://schema.org/UsedCondition",
+      url: productUrl,
+    },
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Catalog",
+        item: absoluteUrl("/catalog"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: CAT_LABEL[part.cat] ?? part.cat,
+        item: absoluteUrl(`/catalog?cat=${encodeURIComponent(part.cat)}`),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: part.pn,
+        item: productUrl,
+      },
+    ],
+  };
 
   return (
     <div className="app">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Header variant="app" />
       <ViewCounter pn={part.pn} />
 
@@ -117,6 +213,10 @@ export default async function ProductPage({
             <div className="pdp-brand">{part.brand}</div>
             <h1 className="pdp-pn mono">{part.pn}</h1>
             <p className="pdp-name">{part.name}</p>
+            <p className="pdp-name">
+              Buy or source this {part.brand} {part.pn} industrial automation replacement with
+              testing status, lead time, and worldwide shipping confirmed before quote.
+            </p>
             <div className="pdp-badges">
               <StockBadge part={part} />
               <LifeBadge life={part.life} />

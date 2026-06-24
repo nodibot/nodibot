@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAnalyticsOverview, type AnalyticsEventFilter } from "@/app/_lib/admin";
+import { Pagination, clampPageForTotal, paginateItems, parsePageParam } from "../_components/Pagination";
 import { TrafficChartsClient } from "./TrafficChartsClient";
 
 function pct(value: number): string {
@@ -26,10 +27,14 @@ function formatCountryLabel(code: string): string {
   return name ? `${normalized} (${name})` : normalized;
 }
 
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default async function TrafficAnalyticsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ days?: string; event?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const DAYS: Array<7 | 30 | 90> = [7, 30, 90];
   const EVENT_FILTERS: AnalyticsEventFilter[] = ["all", "clicks", "searches", "rfqs"];
@@ -42,14 +47,59 @@ export default async function TrafficAnalyticsPage({
 
   const params = await searchParams;
 
-  const daysValue = Number(params.days);
+  const daysValue = Number(firstParam(params.days));
   const days = (daysValue === 7 || daysValue === 30 || daysValue === 90 ? daysValue : 30) as 7 | 30 | 90;
-  const eventFilter = (params.event === "clicks" || params.event === "searches" || params.event === "rfqs"
-    ? params.event
+  const eventValue = firstParam(params.event);
+  const eventFilter = (eventValue === "clicks" || eventValue === "searches" || eventValue === "rfqs"
+    ? eventValue
     : "all") as AnalyticsEventFilter;
 
   const analytics = await getAnalyticsOverview({ days, eventFilter });
   const sinceLabel = new Date(analytics.sinceIso).toLocaleDateString();
+  const eventBreakdownSize = 10;
+  const topConvertingSize = 10;
+  const topPartsSize = 10;
+  const topCountriesSize = 10;
+  const topQueriesSize = 10;
+  const recentEventsSize = 15;
+
+  const eventBreakdownPage = clampPageForTotal(
+    parsePageParam(params, "ebPage"),
+    analytics.eventBreakdown.length,
+    eventBreakdownSize,
+  );
+  const topConvertingPage = clampPageForTotal(
+    parsePageParam(params, "tcPage"),
+    analytics.topConvertingParts.length,
+    topConvertingSize,
+  );
+  const topPartsPage = clampPageForTotal(
+    parsePageParam(params, "tpPage"),
+    analytics.topPartsByClick.length,
+    topPartsSize,
+  );
+  const topCountriesPage = clampPageForTotal(
+    parsePageParam(params, "cPage"),
+    analytics.topCountries.length,
+    topCountriesSize,
+  );
+  const topQueriesPage = clampPageForTotal(
+    parsePageParam(params, "qPage"),
+    analytics.topQueries.length,
+    topQueriesSize,
+  );
+  const recentEventsPage = clampPageForTotal(
+    parsePageParam(params, "rePage"),
+    analytics.recentEvents.length,
+    recentEventsSize,
+  );
+
+  const pagedEventBreakdown = paginateItems(analytics.eventBreakdown, eventBreakdownPage, eventBreakdownSize);
+  const pagedTopConverting = paginateItems(analytics.topConvertingParts, topConvertingPage, topConvertingSize);
+  const pagedTopParts = paginateItems(analytics.topPartsByClick, topPartsPage, topPartsSize);
+  const pagedTopCountries = paginateItems(analytics.topCountries, topCountriesPage, topCountriesSize);
+  const pagedTopQueries = paginateItems(analytics.topQueries, topQueriesPage, topQueriesSize);
+  const pagedRecentEvents = paginateItems(analytics.recentEvents, recentEventsPage, recentEventsSize);
 
   return (
     <>
@@ -142,7 +192,7 @@ export default async function TrafficAnalyticsPage({
                   <td colSpan={3} className="dim">No event data yet.</td>
                 </tr>
               ) : (
-                analytics.eventBreakdown.map((row) => (
+                pagedEventBreakdown.map((row) => (
                   <tr key={row.eventName}>
                     <td><EventLabel eventName={row.eventName} /></td>
                     <td>{row.count}</td>
@@ -153,6 +203,14 @@ export default async function TrafficAnalyticsPage({
             </tbody>
           </table>
         </div>
+        <Pagination
+          pathname="/admin-portal/analytics-traffic"
+          currentPage={eventBreakdownPage}
+          totalItems={analytics.eventBreakdown.length}
+          pageSize={eventBreakdownSize}
+          searchParams={params}
+          pageParam="ebPage"
+        />
 
         <div className="admin-table-wrap" style={{ marginBottom: 20 }}>
           <table className="admin-table">
@@ -171,9 +229,9 @@ export default async function TrafficAnalyticsPage({
                   <td colSpan={5} className="dim">Need more click/RFQ data (minimum 2 clicks per part).</td>
                 </tr>
               ) : (
-                analytics.topConvertingParts.map((row, i) => (
+                pagedTopConverting.map((row, i) => (
                   <tr key={row.partPn}>
-                    <td>{i + 1}</td>
+                    <td>{(topConvertingPage - 1) * topConvertingSize + i + 1}</td>
                     <td className="mono">{row.partPn}</td>
                     <td>{row.clicks}</td>
                     <td>{row.rfqs}</td>
@@ -184,6 +242,14 @@ export default async function TrafficAnalyticsPage({
             </tbody>
           </table>
         </div>
+        <Pagination
+          pathname="/admin-portal/analytics-traffic"
+          currentPage={topConvertingPage}
+          totalItems={analytics.topConvertingParts.length}
+          pageSize={topConvertingSize}
+          searchParams={params}
+          pageParam="tcPage"
+        />
 
         <div className="admin-table-wrap" style={{ marginBottom: 20 }}>
           <table className="admin-table">
@@ -200,9 +266,9 @@ export default async function TrafficAnalyticsPage({
                   <td colSpan={3} className="dim">No click data yet.</td>
                 </tr>
               ) : (
-                analytics.topPartsByClick.map((row, i) => (
+                pagedTopParts.map((row, i) => (
                   <tr key={row.partPn}>
-                    <td>{i + 1}</td>
+                    <td>{(topPartsPage - 1) * topPartsSize + i + 1}</td>
                     <td className="mono">{row.partPn}</td>
                     <td>{row.clicks}</td>
                   </tr>
@@ -211,6 +277,14 @@ export default async function TrafficAnalyticsPage({
             </tbody>
           </table>
         </div>
+        <Pagination
+          pathname="/admin-portal/analytics-traffic"
+          currentPage={topPartsPage}
+          totalItems={analytics.topPartsByClick.length}
+          pageSize={topPartsSize}
+          searchParams={params}
+          pageParam="tpPage"
+        />
 
         <div className="admin-table-wrap">
           <table className="admin-table">
@@ -227,9 +301,9 @@ export default async function TrafficAnalyticsPage({
                   <td colSpan={3} className="dim">No location data yet.</td>
                 </tr>
               ) : (
-                analytics.topCountries.map((row, i) => (
+                pagedTopCountries.map((row, i) => (
                   <tr key={row.countryCode}>
-                    <td>{i + 1}</td>
+                    <td>{(topCountriesPage - 1) * topCountriesSize + i + 1}</td>
                     <td className="mono">{formatCountryLabel(row.countryCode)}</td>
                     <td>{row.count}</td>
                   </tr>
@@ -238,6 +312,14 @@ export default async function TrafficAnalyticsPage({
             </tbody>
           </table>
         </div>
+        <Pagination
+          pathname="/admin-portal/analytics-traffic"
+          currentPage={topCountriesPage}
+          totalItems={analytics.topCountries.length}
+          pageSize={topCountriesSize}
+          searchParams={params}
+          pageParam="cPage"
+        />
 
         <div className="admin-table-wrap" style={{ marginTop: 20, marginBottom: 20 }}>
           <table className="admin-table">
@@ -254,9 +336,9 @@ export default async function TrafficAnalyticsPage({
                   <td colSpan={3} className="dim">No search data yet.</td>
                 </tr>
               ) : (
-                analytics.topQueries.map((row, i) => (
+                pagedTopQueries.map((row, i) => (
                   <tr key={row.query}>
-                    <td>{i + 1}</td>
+                    <td>{(topQueriesPage - 1) * topQueriesSize + i + 1}</td>
                     <td className="mono">{row.query}</td>
                     <td>{row.searches}</td>
                   </tr>
@@ -265,6 +347,14 @@ export default async function TrafficAnalyticsPage({
             </tbody>
           </table>
         </div>
+        <Pagination
+          pathname="/admin-portal/analytics-traffic"
+          currentPage={topQueriesPage}
+          totalItems={analytics.topQueries.length}
+          pageSize={topQueriesSize}
+          searchParams={params}
+          pageParam="qPage"
+        />
 
         <div className="admin-table-wrap" style={{ marginTop: 20 }}>
           <table className="admin-table">
@@ -284,7 +374,7 @@ export default async function TrafficAnalyticsPage({
                   <td colSpan={6} className="dim">No recent events yet.</td>
                 </tr>
               ) : (
-                analytics.recentEvents.map((row, i) => (
+                pagedRecentEvents.map((row, i) => (
                   <tr key={`${row.createdAt}-${row.eventName}-${i}`}>
                     <td className="mono">{new Date(row.createdAt).toLocaleString()}</td>
                     <td><EventLabel eventName={row.eventName} /></td>
@@ -300,6 +390,14 @@ export default async function TrafficAnalyticsPage({
             </tbody>
           </table>
         </div>
+        <Pagination
+          pathname="/admin-portal/analytics-traffic"
+          currentPage={recentEventsPage}
+          totalItems={analytics.recentEvents.length}
+          pageSize={recentEventsSize}
+          searchParams={params}
+          pageParam="rePage"
+        />
       </div>
     </>
   );

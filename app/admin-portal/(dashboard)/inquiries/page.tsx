@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getInquiries } from "@/app/_lib/admin";
 import type { Inquiry } from "@/app/_lib/types";
+import { Pagination, paginateItems, parsePageParam } from "../_components/Pagination";
 import { STATUSES } from "./status";
 import { StatusSelect } from "./StatusSelect";
 
@@ -35,17 +36,25 @@ function LeadCard({ lead }: { lead: Inquiry }) {
   );
 }
 
-export default async function AdminInquiriesPage() {
+export default async function AdminInquiriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
   const inquiries = await getInquiries();
+  const pageSize = 20;
+  const currentPage = parsePageParam(params);
+  const pagedInquiries = paginateItems(inquiries, currentPage, pageSize);
 
-  const byStatus = (status: string) => inquiries.filter((i) => i.status === status);
+  const byStatus = (status: string) => pagedInquiries.filter((i) => i.status === status);
 
   return (
     <>
       <div className="admin-top">
         <div>
           <h1>Inquiries</h1>
-          <div className="sub">{inquiries.length} total leads in the pipeline</div>
+          <div className="sub">{inquiries.length} total leads in the pipeline · showing {pagedInquiries.length} this page</div>
         </div>
       </div>
 
@@ -72,6 +81,13 @@ export default async function AdminInquiriesPage() {
             })}
           </div>
         )}
+        <Pagination
+          pathname="/admin-portal/inquiries"
+          currentPage={currentPage}
+          totalItems={inquiries.length}
+          pageSize={pageSize}
+          searchParams={params}
+        />
       </div>
     </>
   );

@@ -8,6 +8,7 @@ import {
 import { buildChineseSourcingQuery, buildSourcingSearchLinks, buildSourcingQuery } from "@/app/_lib/sourcing/search-links";
 import type { SourcingQuote } from "@/app/_lib/types";
 import { PartImage, StockBadge, LifeBadge } from "@/app/_components/badges";
+import { Pagination, paginateItems, parsePageParam } from "../../_components/Pagination";
 import { StatusSelect } from "../StatusSelect";
 import { selectSourcingQuoteAction } from "../actions";
 import { CopyButton } from "./CopyButton";
@@ -87,9 +88,12 @@ function QuoteTable({ quotes }: { quotes: SourcingQuote[] }) {
 
 export default async function InquiryDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const query = await searchParams;
   const { id } = await params;
   const inquiry = await getInquiryById(id);
   if (!inquiry) notFound();
@@ -101,6 +105,9 @@ export default async function InquiryDetailPage({
   const searchLinks = buildSourcingSearchLinks(inquiry, part);
   const searchText = buildSourcingQuery(inquiry, part);
   const chineseSearchText = buildChineseSourcingQuery(inquiry, part);
+  const quotePageSize = 8;
+  const quotePage = parsePageParam(query, "quotesPage");
+  const pagedQuotes = paginateItems(quotes, quotePage, quotePageSize);
 
   return (
     <>
@@ -194,7 +201,15 @@ export default async function InquiryDetailPage({
 
         <section className="admin-stat">
           <h2 style={{ margin: "0 0 14px", fontSize: 18 }}>Supplier findings</h2>
-          <QuoteTable quotes={quotes} />
+          <QuoteTable quotes={pagedQuotes} />
+          <Pagination
+            pathname={`/admin-portal/inquiries/${inquiry.id}`}
+            currentPage={quotePage}
+            totalItems={quotes.length}
+            pageSize={quotePageSize}
+            searchParams={query}
+            pageParam="quotesPage"
+          />
         </section>
 
         <section className="admin-stat">

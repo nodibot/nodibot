@@ -1,11 +1,20 @@
 import Link from "next/link";
 import { getLeads } from "@/app/_lib/outreach/queries";
+import { Pagination, paginateItems, parsePageParam } from "../_components/Pagination";
 import { AddLeadForm } from "./AddLeadForm";
 import { ImportLeadsForm } from "./ImportLeadsForm";
 import { LeadsTable } from "./LeadsTable";
 
-export default async function OutreachPage() {
+export default async function OutreachPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
   const leads = await getLeads();
+  const pageSize = 20;
+  const currentPage = parsePageParam(params);
+  const pagedLeads = paginateItems(leads, currentPage, pageSize);
   const byStatus = (s: string) => leads.filter((l) => l.status === s).length;
 
   return (
@@ -34,7 +43,14 @@ export default async function OutreachPage() {
 
         <section>
           <h2>Leads</h2>
-          <LeadsTable leads={leads} />
+          <LeadsTable leads={pagedLeads} />
+          <Pagination
+            pathname="/admin-portal/outreach"
+            currentPage={currentPage}
+            totalItems={leads.length}
+            pageSize={pageSize}
+            searchParams={params}
+          />
         </section>
       </div>
     </>

@@ -1,6 +1,7 @@
 import { getAllParts } from "@/app/_lib/admin";
 import { CAT_LABEL } from "@/app/_lib/taxonomy";
 import type { AdminPart } from "@/app/_lib/types";
+import { Pagination, clampPageForTotal, paginateItems, parsePageParam } from "../_components/Pagination";
 
 // A part is on the "buy list" if there's demand but no stock on hand —
 // either source-on-request, or in stock but running low.
@@ -8,10 +9,18 @@ function needsSourcing(p: AdminPart): boolean {
   return p.stock === "request" || (p.stock === "in" && (p.qty ?? 0) <= 2);
 }
 
-export default async function DemandPage() {
+export default async function DemandPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
   const parts = (await getAllParts())
     .filter((p) => p.isActive)
     .sort((a, b) => (b.demandScore ?? b.views) - (a.demandScore ?? a.views));
+  const pageSize = 20;
+  const currentPage = clampPageForTotal(parsePageParam(params), parts.length, pageSize);
+  const pagedParts = paginateItems(parts, currentPage, pageSize);
 
   const maxDemand = Math.max(1, ...parts.map((p) => p.demandScore ?? p.views));
   const totalViews = parts.reduce((sum, p) => sum + p.views, 0);
@@ -60,9 +69,9 @@ export default async function DemandPage() {
                 </tr>
               </thead>
               <tbody>
-                {parts.map((p, i) => (
+                {pagedParts.map((p, i) => (
                   <tr key={p.id}>
-                    <td className="mono">{i + 1}</td>
+                    <td className="mono">{(currentPage - 1) * pageSize + i + 1}</td>
                     <td className="mono">{p.pn}</td>
                     <td>{p.brand}</td>
                     <td>{CAT_LABEL[p.cat] ?? p.cat}</td>
@@ -96,6 +105,13 @@ export default async function DemandPage() {
             </table>
           </div>
         )}
+        <Pagination
+          pathname="/admin-portal/analytics-demand"
+          currentPage={currentPage}
+          totalItems={parts.length}
+          pageSize={pageSize}
+          searchParams={params}
+        />
       </div>
     </>
   );

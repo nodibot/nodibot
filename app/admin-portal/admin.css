@@ -211,6 +211,33 @@
 .admin-table-wrap {
   overflow-x: auto;
 }
+.admin-pagination {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.admin-pagination-meta {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.admin-pagination-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.admin-pagination .is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.admin-pagination-ellipsis {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 0 2px;
+}
 .dim {
   opacity: 0.5;
 }

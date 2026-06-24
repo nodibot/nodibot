@@ -1,9 +1,18 @@
 import Link from "next/link";
 import { getTemplates } from "@/app/_lib/outreach/queries";
+import { Pagination, paginateItems, parsePageParam } from "../../_components/Pagination";
 import { TemplateForm } from "./TemplateForm";
 
-export default async function TemplatesPage() {
+export default async function TemplatesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
   const templates = await getTemplates();
+  const pageSize = 10;
+  const currentPage = parsePageParam(params);
+  const pagedTemplates = paginateItems(templates, currentPage, pageSize);
   return (
     <>
       <div className="admin-top">
@@ -24,7 +33,7 @@ export default async function TemplatesPage() {
             <div className="admin-empty">No templates yet. The cron needs one active <code>initial</code> and one active <code>reminder</code> template.</div>
           ) : (
             <ul style={{ display: "grid", gap: 12 }}>
-              {templates.map((t) => (
+              {pagedTemplates.map((t) => (
                 <li key={t.id} style={{ border: "1px solid #eee", padding: 12, borderRadius: 8 }}>
                   <strong>{t.name}</strong> · {t.kind} {t.active ? "· active" : "· inactive"}
                   <div style={{ fontSize: 13, color: "#666" }}>Subject: {t.subject}</div>
@@ -33,6 +42,13 @@ export default async function TemplatesPage() {
               ))}
             </ul>
           )}
+          <Pagination
+            pathname="/admin-portal/outreach/templates"
+            currentPage={currentPage}
+            totalItems={templates.length}
+            pageSize={pageSize}
+            searchParams={params}
+          />
         </section>
       </div>
     </>

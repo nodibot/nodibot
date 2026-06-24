@@ -1,10 +1,19 @@
 import Link from "next/link";
 import { getAllParts } from "@/app/_lib/admin";
 import { CAT_LABEL } from "@/app/_lib/taxonomy";
+import { Pagination, paginateItems, parsePageParam } from "../_components/Pagination";
 import { DeleteButton } from "./DeleteButton";
 
-export default async function AdminProductsPage() {
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
   const parts = await getAllParts();
+  const pageSize = 20;
+  const currentPage = parsePageParam(params);
+  const pagedParts = paginateItems(parts, currentPage, pageSize);
 
   return (
     <>
@@ -41,7 +50,7 @@ export default async function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody>
-                {parts.map((p) => (
+                {pagedParts.map((p) => (
                   <tr key={p.id} className={p.isActive ? "" : "dim"}>
                     <td className="mono">{p.pn}</td>
                     <td>{p.brand}</td>
@@ -91,6 +100,13 @@ export default async function AdminProductsPage() {
             </table>
           </div>
         )}
+        <Pagination
+          pathname="/admin-portal/products"
+          currentPage={currentPage}
+          totalItems={parts.length}
+          pageSize={pageSize}
+          searchParams={params}
+        />
       </div>
     </>
   );

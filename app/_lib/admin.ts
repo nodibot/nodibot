@@ -204,7 +204,14 @@ function filterRowsByEvent<T extends { event_name: string }>(
   eventFilter: AnalyticsEventFilter,
 ): T[] {
   if (eventFilter === "all") return rows;
-  if (eventFilter === "clicks") return rows.filter((r) => r.event_name === "catalog_item_click" || r.event_name === "whatsapp_click");
+  if (eventFilter === "clicks") {
+    return rows.filter(
+      (r) =>
+        r.event_name === "catalog_item_click" ||
+        r.event_name === "whatsapp_click" ||
+        r.event_name === "email_click",
+    );
+  }
   if (eventFilter === "searches") return rows.filter((r) => r.event_name === "catalog_search");
   return rows.filter((r) => r.event_name === "rfq_submitted");
 }

@@ -6,7 +6,8 @@ export type AnalyticsEventName =
   | "catalog_filter_change"
   | "catalog_sort_change"
   | "rfq_submitted"
-  | "whatsapp_click";
+  | "whatsapp_click"
+  | "email_click";
 
 export interface AnalyticsEventPayload {
   event_name: AnalyticsEventName;

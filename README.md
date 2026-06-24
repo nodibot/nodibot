@@ -27,6 +27,9 @@ Set `NEXT_PUBLIC_WHATSAPP_URL` to your WhatsApp Business click-to-chat URL
 (`https://wa.me/<country><number>`, digits only). This powers the floating **Chat to source** button and the landing
 page WhatsApp CTAs.
 
+Set `NEXT_PUBLIC_CONTACT_EMAILS` to a comma-separated list of recipients for the floating
+**Email us** button (e.g. `robert@hello-nodibot.com,ops@hello-nodibot.com`).
+
 ### 3. Apply the schema
 
 In the Supabase **SQL Editor**, run the contents of
@@ -74,7 +77,7 @@ npm run dev        # http://localhost:3000   ·   admin at /admin-portal/login
 
 Import the repo into Vercel and set the same env vars (`NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and optionally
-`NEXT_PUBLIC_WHATSAPP_URL`, `NEXT_PUBLIC_SITE_URL`) in the project settings. No other configuration
+`NEXT_PUBLIC_WHATSAPP_URL`, `NEXT_PUBLIC_CONTACT_EMAILS`, `NEXT_PUBLIC_SITE_URL`) in the project settings. No other configuration
 is required.
 
 ## Cold email outreach (Phase 3)

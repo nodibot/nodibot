@@ -15,6 +15,7 @@ function EventLabel({ eventName }: { eventName: string }) {
     catalog_sort_change: "Catalog sort change",
     rfq_submitted: "RFQ submitted",
     whatsapp_click: "WhatsApp click",
+    email_click: "Email click",
   };
   return <>{map[eventName] ?? eventName}</>;
 }

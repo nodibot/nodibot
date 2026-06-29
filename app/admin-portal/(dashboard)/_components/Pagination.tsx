@@ -71,12 +71,11 @@ export function Pagination({
   searchParams = {},
   pageParam = "page",
 }: PaginationProps) {
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  if (totalItems === 0 || totalPages <= 1) return null;
-
+  const safePageSize = Math.max(1, pageSize);
+  const totalPages = Math.max(1, Math.ceil(totalItems / safePageSize));
   const safePage = Math.min(Math.max(1, currentPage), totalPages);
-  const start = (safePage - 1) * pageSize + 1;
-  const end = Math.min(totalItems, safePage * pageSize);
+  const start = totalItems === 0 ? 0 : (safePage - 1) * safePageSize + 1;
+  const end = totalItems === 0 ? 0 : Math.min(totalItems, safePage * safePageSize);
 
   function buildHref(targetPage: number): string {
     const params = new URLSearchParams();

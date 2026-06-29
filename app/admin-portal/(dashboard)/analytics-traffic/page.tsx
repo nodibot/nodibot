@@ -57,11 +57,10 @@ export default async function TrafficAnalyticsPage({
 
   const analytics = await getAnalyticsOverview({ days, eventFilter });
   const sinceLabel = new Date(analytics.sinceIso).toLocaleDateString();
-  const eventBreakdownSize = 10;
-  const topConvertingSize = 10;
-  const topPartsSize = 10;
-  const topCountriesSize = 10;
-  const topQueriesSize = 10;
+  const eventBreakdownSize = 5;
+  const topConvertingSize = 5;
+  const topCountriesSize = 5;
+  const topQueriesSize = 5;
   const recentEventsSize = 15;
 
   const eventBreakdownPage = clampPageForTotal(
@@ -73,11 +72,6 @@ export default async function TrafficAnalyticsPage({
     parsePageParam(params, "tcPage"),
     analytics.topConvertingParts.length,
     topConvertingSize,
-  );
-  const topPartsPage = clampPageForTotal(
-    parsePageParam(params, "tpPage"),
-    analytics.topPartsByClick.length,
-    topPartsSize,
   );
   const topCountriesPage = clampPageForTotal(
     parsePageParam(params, "cPage"),
@@ -97,7 +91,6 @@ export default async function TrafficAnalyticsPage({
 
   const pagedEventBreakdown = paginateItems(analytics.eventBreakdown, eventBreakdownPage, eventBreakdownSize);
   const pagedTopConverting = paginateItems(analytics.topConvertingParts, topConvertingPage, topConvertingSize);
-  const pagedTopParts = paginateItems(analytics.topPartsByClick, topPartsPage, topPartsSize);
   const pagedTopCountries = paginateItems(analytics.topCountries, topCountriesPage, topCountriesSize);
   const pagedTopQueries = paginateItems(analytics.topQueries, topQueriesPage, topQueriesSize);
   const pagedRecentEvents = paginateItems(analytics.recentEvents, recentEventsPage, recentEventsSize);
@@ -147,6 +140,7 @@ export default async function TrafficAnalyticsPage({
           topCountries={analytics.topCountries}
         />
 
+        {/* Stats */}
         <div className="admin-stats">
           <div className="admin-stat">
             <div className="n">{analytics.totalEvents.toLocaleString()}</div>
@@ -178,227 +172,206 @@ export default async function TrafficAnalyticsPage({
           </div>
         </div>
 
-        <div className="admin-table-wrap" style={{ marginBottom: 20 }}>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Event type</th>
-                <th>Count</th>
-                <th>Share</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analytics.eventBreakdown.length === 0 ? (
+        {/* Event breakdown */}
+        <div className="admin-table-section">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
                 <tr>
-                  <td colSpan={3} className="dim">No event data yet.</td>
+                  <th>Event type</th>
+                  <th>Count</th>
+                  <th>Share</th>
                 </tr>
-              ) : (
-                pagedEventBreakdown.map((row) => (
-                  <tr key={row.eventName}>
-                    <td><EventLabel eventName={row.eventName} /></td>
-                    <td>{row.count}</td>
-                    <td>{pct(row.count / Math.max(1, analytics.totalEvents))}</td>
+              </thead>
+              <tbody>
+                {analytics.eventBreakdown.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="dim">No event data yet.</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  pagedEventBreakdown.map((row) => (
+                    <tr key={row.eventName}>
+                      <td><EventLabel eventName={row.eventName} /></td>
+                      <td>{row.count}</td>
+                      <td>{pct(row.count / Math.max(1, analytics.totalEvents))}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <Pagination
+            pathname="/admin-portal/analytics-traffic"
+            currentPage={eventBreakdownPage}
+            totalItems={analytics.eventBreakdown.length}
+            pageSize={eventBreakdownSize}
+            searchParams={params}
+            pageParam="ebPage"
+          />
         </div>
-        <Pagination
-          pathname="/admin-portal/analytics-traffic"
-          currentPage={eventBreakdownPage}
-          totalItems={analytics.eventBreakdown.length}
-          pageSize={eventBreakdownSize}
-          searchParams={params}
-          pageParam="ebPage"
-        />
 
-        <div className="admin-table-wrap" style={{ marginBottom: 20 }}>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Part number</th>
-                <th>Clicks</th>
-                <th>RFQs</th>
-                <th>Conversion</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analytics.topConvertingParts.length === 0 ? (
+        <div className="admin-table-section">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
                 <tr>
-                  <td colSpan={5} className="dim">Need more click/RFQ data (minimum 2 clicks per part).</td>
+                  <th>#</th>
+                  <th>Part number</th>
+                  <th>Clicks</th>
+                  <th>RFQs</th>
+                  <th>Conversion</th>
                 </tr>
-              ) : (
-                pagedTopConverting.map((row, i) => (
-                  <tr key={row.partPn}>
-                    <td>{(topConvertingPage - 1) * topConvertingSize + i + 1}</td>
-                    <td className="mono">{row.partPn}</td>
-                    <td>{row.clicks}</td>
-                    <td>{row.rfqs}</td>
-                    <td>{pct(row.conversionRate)}</td>
+              </thead>
+              <tbody>
+                {analytics.topConvertingParts.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="dim">Need more click/RFQ data (minimum 2 clicks per part).</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  pagedTopConverting.map((row, i) => (
+                    <tr key={row.partPn}>
+                      <td>{(topConvertingPage - 1) * topConvertingSize + i + 1}</td>
+                      <td className="mono">{row.partPn}</td>
+                      <td>{row.clicks}</td>
+                      <td>{row.rfqs}</td>
+                      <td>{pct(row.conversionRate)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <Pagination
+            pathname="/admin-portal/analytics-traffic"
+            currentPage={topConvertingPage}
+            totalItems={analytics.topConvertingParts.length}
+            pageSize={topConvertingSize}
+            searchParams={params}
+            pageParam="tcPage"
+          />
         </div>
-        <Pagination
-          pathname="/admin-portal/analytics-traffic"
-          currentPage={topConvertingPage}
-          totalItems={analytics.topConvertingParts.length}
-          pageSize={topConvertingSize}
-          searchParams={params}
-          pageParam="tcPage"
-        />
 
-        <div className="admin-table-wrap" style={{ marginBottom: 20 }}>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Part number</th>
-                <th>Clicks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analytics.topPartsByClick.length === 0 ? (
+        {/* Top countries */}
+        <div className="admin-table-section">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
                 <tr>
-                  <td colSpan={3} className="dim">No click data yet.</td>
+                  <th>#</th>
+                  <th>Country</th>
+                  <th>Count</th>
                 </tr>
-              ) : (
-                pagedTopParts.map((row, i) => (
-                  <tr key={row.partPn}>
-                    <td>{(topPartsPage - 1) * topPartsSize + i + 1}</td>
-                    <td className="mono">{row.partPn}</td>
-                    <td>{row.clicks}</td>
+              </thead>
+              <tbody>
+                {analytics.topCountries.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="dim">No location data yet.</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  pagedTopCountries.map((row, i) => (
+                    <tr key={row.countryCode}>
+                      <td>{(topCountriesPage - 1) * topCountriesSize + i + 1}</td>
+                      <td className="mono">{formatCountryLabel(row.countryCode)}</td>
+                      <td>{row.count}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <Pagination
+            pathname="/admin-portal/analytics-traffic"
+            currentPage={topCountriesPage}
+            totalItems={analytics.topCountries.length}
+            pageSize={topCountriesSize}
+            searchParams={params}
+            pageParam="cPage"
+          />
         </div>
-        <Pagination
-          pathname="/admin-portal/analytics-traffic"
-          currentPage={topPartsPage}
-          totalItems={analytics.topPartsByClick.length}
-          pageSize={topPartsSize}
-          searchParams={params}
-          pageParam="tpPage"
-        />
 
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Country</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analytics.topCountries.length === 0 ? (
+        {/* Top queries */}
+        <div className="admin-table-section">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
                 <tr>
-                  <td colSpan={3} className="dim">No location data yet.</td>
+                  <th>#</th>
+                  <th>Search query</th>
+                  <th>Count</th>
                 </tr>
-              ) : (
-                pagedTopCountries.map((row, i) => (
-                  <tr key={row.countryCode}>
-                    <td>{(topCountriesPage - 1) * topCountriesSize + i + 1}</td>
-                    <td className="mono">{formatCountryLabel(row.countryCode)}</td>
-                    <td>{row.count}</td>
+              </thead>
+              <tbody>
+                {analytics.topQueries.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="dim">No search data yet.</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  pagedTopQueries.map((row, i) => (
+                    <tr key={row.query}>
+                      <td>{(topQueriesPage - 1) * topQueriesSize + i + 1}</td>
+                      <td className="mono">{row.query}</td>
+                      <td>{row.searches}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <Pagination
+            pathname="/admin-portal/analytics-traffic"
+            currentPage={topQueriesPage}
+            totalItems={analytics.topQueries.length}
+            pageSize={topQueriesSize}
+            searchParams={params}
+            pageParam="qPage"
+          />
         </div>
-        <Pagination
-          pathname="/admin-portal/analytics-traffic"
-          currentPage={topCountriesPage}
-          totalItems={analytics.topCountries.length}
-          pageSize={topCountriesSize}
-          searchParams={params}
-          pageParam="cPage"
-        />
 
-        <div className="admin-table-wrap" style={{ marginTop: 20, marginBottom: 20 }}>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Search query</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analytics.topQueries.length === 0 ? (
+        {/* Recent events */}
+        <div className="admin-table-section">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
                 <tr>
-                  <td colSpan={3} className="dim">No search data yet.</td>
+                  <th>Time</th>
+                  <th>Event</th>
+                  <th>Part</th>
+                  <th>Query</th>
+                  <th>Location</th>
+                  <th>Path</th>
                 </tr>
-              ) : (
-                pagedTopQueries.map((row, i) => (
-                  <tr key={row.query}>
-                    <td>{(topQueriesPage - 1) * topQueriesSize + i + 1}</td>
-                    <td className="mono">{row.query}</td>
-                    <td>{row.searches}</td>
+              </thead>
+              <tbody>
+                {analytics.recentEvents.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="dim">No recent events yet.</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  pagedRecentEvents.map((row, i) => (
+                    <tr key={`${row.createdAt}-${row.eventName}-${i}`}>
+                      <td className="mono">{new Date(row.createdAt).toLocaleString()}</td>
+                      <td><EventLabel eventName={row.eventName} /></td>
+                      <td className="mono">{row.partPn ?? "—"}</td>
+                      <td className="mono">{row.query ?? "—"}</td>
+                      <td className="mono">
+                        {[row.countryCode, row.region, row.city].filter(Boolean).join(" / ") || "—"}
+                      </td>
+                      <td className="mono">{row.pagePath ?? "—"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <Pagination
+            pathname="/admin-portal/analytics-traffic"
+            currentPage={recentEventsPage}
+            totalItems={analytics.recentEvents.length}
+            pageSize={recentEventsSize}
+            searchParams={params}
+            pageParam="rePage"
+          />
         </div>
-        <Pagination
-          pathname="/admin-portal/analytics-traffic"
-          currentPage={topQueriesPage}
-          totalItems={analytics.topQueries.length}
-          pageSize={topQueriesSize}
-          searchParams={params}
-          pageParam="qPage"
-        />
-
-        <div className="admin-table-wrap" style={{ marginTop: 20 }}>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Event</th>
-                <th>Part</th>
-                <th>Query</th>
-                <th>Location</th>
-                <th>Path</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analytics.recentEvents.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="dim">No recent events yet.</td>
-                </tr>
-              ) : (
-                pagedRecentEvents.map((row, i) => (
-                  <tr key={`${row.createdAt}-${row.eventName}-${i}`}>
-                    <td className="mono">{new Date(row.createdAt).toLocaleString()}</td>
-                    <td><EventLabel eventName={row.eventName} /></td>
-                    <td className="mono">{row.partPn ?? "—"}</td>
-                    <td className="mono">{row.query ?? "—"}</td>
-                    <td className="mono">
-                      {[row.countryCode, row.region, row.city].filter(Boolean).join(" / ") || "—"}
-                    </td>
-                    <td className="mono">{row.pagePath ?? "—"}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        <Pagination
-          pathname="/admin-portal/analytics-traffic"
-          currentPage={recentEventsPage}
-          totalItems={analytics.recentEvents.length}
-          pageSize={recentEventsSize}
-          searchParams={params}
-          pageParam="rePage"
-        />
       </div>
     </>
   );

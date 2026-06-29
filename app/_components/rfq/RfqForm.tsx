@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Ic } from "@/app/_components/icons";
 import { trackEvent } from "@/app/_lib/analytics-client";
+import { buildContactEmailHref } from "@/app/_lib/contact-email";
+import { buildWhatsAppHref } from "@/app/_lib/whatsapp";
 import type { Channel, Part, Urgency } from "@/app/_lib/types";
 
 interface FormState {
@@ -63,9 +65,12 @@ function Success({ part, urgency, channel, ticket }: { part: Part; urgency: Urge
 export function RfqForm({ part }: { part: Part }) {
   const [form, setForm] = useState<FormState>(INITIAL);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [showDetails, setShowDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [result, setResult] = useState<{ ticket: string } | null>(null);
+  const whatsappHref = buildWhatsAppHref({ partPn: part.pn });
+  const emailHref = buildContactEmailHref({ partPn: part.pn });
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => {
     setForm((f) => ({ ...f, [k]: v }));
@@ -74,7 +79,6 @@ export function RfqForm({ part }: { part: Part }) {
 
   const validate = () => {
     const e: Record<string, boolean> = {};
-    if (!form.name.trim()) e.name = true;
     if (!form.contact.trim()) e.contact = true;
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -91,7 +95,7 @@ export function RfqForm({ part }: { part: Part }) {
         body: JSON.stringify({
           partId: part.id,
           partPn: part.pn,
-          name: form.name,
+          name: form.name.trim() || "Website RFQ",
           company: form.company,
           contact: form.contact,
           channel: form.channel,
@@ -141,54 +145,32 @@ export function RfqForm({ part }: { part: Part }) {
       </div>
 
       <div className="rfq-body">
-        {/* urgency */}
-        <div className="field">
-          <label>
-            Machine status <span className="req">*</span>
-          </label>
-          <div className="seg">
-            <div
-              className={"seg-opt urgent" + (form.urgency === "down" ? " on urgent" : "")}
-              onClick={() => set("urgency", "down")}
+        <div className="rfq-fast-exit">
+          {whatsappHref && (
+            <a
+              className="btn btn-primary btn-lg"
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() =>
+                trackEvent({ event_name: "whatsapp_click", part_pn: part.pn, metadata: { surface: "rfq_panel" } })
+              }
             >
-              <span className="st">
-                <span className="ic" />
-                Line down
-              </span>
-              <span className="sd">Emergency · prioritized</span>
-            </div>
-            <div
-              className={"seg-opt" + (form.urgency === "spare" ? " on" : "")}
-              onClick={() => set("urgency", "spare")}
+              <Ic.whatsapp /> WhatsApp quote
+            </a>
+          )}
+          {emailHref && (
+            <a
+              className="btn btn-ghost btn-lg"
+              href={emailHref}
+              onClick={() => trackEvent({ event_name: "email_click", part_pn: part.pn, metadata: { surface: "rfq_panel" } })}
             >
-              <span className="st">
-                <span className="ic" />
-                Stocking spares
-              </span>
-              <span className="sd">Planning ahead</span>
-            </div>
-          </div>
+              <Ic.mail /> Email quote
+            </a>
+          )}
         </div>
 
-        <div className="field-row">
-          <div className="field">
-            <label>Quantity</label>
-            <input
-              value={form.qty}
-              onChange={(e) => set("qty", e.target.value)}
-              type="number"
-              min="1"
-            />
-          </div>
-          <div className="field">
-            <label>Condition</label>
-            <select value={form.cond} onChange={(e) => set("cond", e.target.value)}>
-              <option value="any">Any tested unit</option>
-              <option value="refurb">Refurbished only</option>
-              <option value="exchange">Core exchange</option>
-            </select>
-          </div>
-        </div>
+        <div className="rfq-or">or leave one contact and we&apos;ll reply</div>
 
         {/* contact channel */}
         <div className="field">
@@ -211,49 +193,101 @@ export function RfqForm({ part }: { part: Part }) {
 
         <div className="field-row">
           <div className="field">
-            <label>
-              Name <span className="req">*</span>
-            </label>
+            <label>Name / company</label>
             <input
               className={errors.name ? "err" : ""}
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
-              placeholder="Your name"
+              placeholder="Optional"
             />
-            {errors.name && <span className="errmsg">Required</span>}
           </div>
           <div className="field">
-            <label>Company</label>
+            <label>
+              {form.channel === "Email" ? "Work email" : form.channel === "Phone" ? "Phone number" : "WhatsApp number"}{" "}
+              <span className="req">*</span>
+            </label>
             <input
-              value={form.company}
-              onChange={(e) => set("company", e.target.value)}
-              placeholder="Plant / integrator"
+              className={errors.contact ? "err" : ""}
+              value={form.contact}
+              onChange={(e) => set("contact", e.target.value)}
+              placeholder={form.channel === "Email" ? "you@factory.com" : "+86 138 0000 0000"}
             />
+            {errors.contact && <span className="errmsg">Required so we can send your quote</span>}
           </div>
         </div>
 
-        <div className="field">
-          <label>
-            {form.channel === "Email" ? "Work email" : form.channel === "Phone" ? "Phone number" : "WhatsApp number"}{" "}
-            <span className="req">*</span>
-          </label>
-          <input
-            className={errors.contact ? "err" : ""}
-            value={form.contact}
-            onChange={(e) => set("contact", e.target.value)}
-            placeholder={form.channel === "Email" ? "you@factory.com" : "+86 138 0000 0000"}
-          />
-          {errors.contact && <span className="errmsg">Required so we can send your quote</span>}
-        </div>
+        <button className="rfq-details-toggle" type="button" onClick={() => setShowDetails((open) => !open)}>
+          {showDetails ? "Hide details" : "Add quantity, urgency, or notes"}
+        </button>
 
-        <div className="field">
-          <label>Notes</label>
-          <textarea
-            value={form.notes}
-            onChange={(e) => set("notes", e.target.value)}
-            placeholder="Serial / firmware revision, host system, deadline…"
-          />
-        </div>
+        {showDetails && (
+          <div className="rfq-details">
+            {/* urgency */}
+            <div className="field">
+              <label>Machine status</label>
+              <div className="seg">
+                <div
+                  className={"seg-opt urgent" + (form.urgency === "down" ? " on urgent" : "")}
+                  onClick={() => set("urgency", "down")}
+                >
+                  <span className="st">
+                    <span className="ic" />
+                    Line down
+                  </span>
+                  <span className="sd">Emergency · prioritized</span>
+                </div>
+                <div
+                  className={"seg-opt" + (form.urgency === "spare" ? " on" : "")}
+                  onClick={() => set("urgency", "spare")}
+                >
+                  <span className="st">
+                    <span className="ic" />
+                    Stocking spares
+                  </span>
+                  <span className="sd">Planning ahead</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="field-row">
+              <div className="field">
+                <label>Quantity</label>
+                <input
+                  value={form.qty}
+                  onChange={(e) => set("qty", e.target.value)}
+                  type="number"
+                  min="1"
+                />
+              </div>
+              <div className="field">
+                <label>Condition</label>
+                <select value={form.cond} onChange={(e) => set("cond", e.target.value)}>
+                  <option value="any">Any tested unit</option>
+                  <option value="refurb">Refurbished only</option>
+                  <option value="exchange">Core exchange</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Company</label>
+              <input
+                value={form.company}
+                onChange={(e) => set("company", e.target.value)}
+                placeholder="Plant / integrator"
+              />
+            </div>
+
+            <div className="field">
+              <label>Notes</label>
+              <textarea
+                value={form.notes}
+                onChange={(e) => set("notes", e.target.value)}
+                placeholder="Serial / firmware revision, host system, deadline..."
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="rfq-foot">

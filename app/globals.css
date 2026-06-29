@@ -435,6 +435,24 @@ button { font-family: inherit; cursor: pointer; }
 
 .rfq-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
 
+.rfq-fast-exit { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rfq-fast-exit .btn { justify-content: center; }
+.rfq-fast-exit .btn:only-child { grid-column: 1 / -1; }
+.rfq-or {
+  display: flex; align-items: center; gap: 10px; color: var(--muted);
+  font-size: 12px; font-weight: 650; text-align: center;
+}
+.rfq-or::before,
+.rfq-or::after {
+  content: ""; flex: 1; height: 1px; background: var(--border);
+}
+.rfq-details-toggle {
+  align-self: flex-start; border: 0; background: transparent; color: var(--accent);
+  padding: 2px 0; font: inherit; font-size: 12.5px; font-weight: 750; cursor: pointer;
+}
+.rfq-details-toggle:hover { text-decoration: underline; }
+.rfq-details { display: flex; flex-direction: column; gap: 14px; }
+
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 12.5px; font-weight: 650; color: var(--ink-2); }
 .field label .req { color: var(--accent); }
@@ -1021,6 +1039,7 @@ button { font-family: inherit; cursor: pointer; }
 
   .price-rows,
   .trust,
+  .rfq-fast-exit,
   .field-row,
   .seg {
     grid-template-columns: 1fr;

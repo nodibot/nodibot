@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { Ic } from "@/app/_components/icons";
 import { trackEvent } from "@/app/_lib/analytics-client";
+import { withLocale } from "@/app/_lib/locale-path";
 import { ProductCard, ProductListItem } from "./ProductCard";
 import { CATEGORIES, HOSTS } from "@/app/_lib/taxonomy";
 import {
@@ -15,10 +17,7 @@ import {
 import type { Part } from "@/app/_lib/types";
 
 type Group = "cats" | "hosts" | "stock";
-const STOCK_OPTS = [
-  { id: "in", l: "In stock now" },
-  { id: "request", l: "Source on request" },
-];
+const STOCK_OPTS = ["in", "request"] as const;
 
 function CatalogHero({
   hostFilter,
@@ -27,29 +26,26 @@ function CatalogHero({
   hostFilter: string[];
   toggleHost: (id: string) => void;
 }) {
+  const t = useTranslations("Catalog");
   return (
     <section className="hero">
       <div className="wrap">
         <h1>
-          Industrial automation parts, <em>sourced on demand.</em>
+          {t("heroTitlePrefix")}<em>{t("heroTitleEmphasis")}</em>
         </h1>
-        <p>
-          Verified secondary-market controllers, drives, pendants and reducers for decommissioned
-          FANUC, ABB, KUKA, Yaskawa &amp; Siemens systems. Drop your part number — we locate, test,
-          and quote.
-        </p>
+        <p>{t("heroSubtitle")}</p>
         <div className="hero-stats">
           <div className="hero-stat">
             <div className="n">12,400+</div>
-            <div className="l">Part numbers indexed</div>
+            <div className="l">{t("indexed")}</div>
           </div>
           <div className="hero-stat">
             <div className="n">&lt; 2 hrs</div>
-            <div className="l">Median quote response</div>
+            <div className="l">{t("medianResponse")}</div>
           </div>
           <div className="hero-stat">
             <div className="n">7</div>
-            <div className="l">OEM host families</div>
+            <div className="l">{t("hostFamilies")}</div>
           </div>
         </div>
         <div className="host-row">
@@ -78,6 +74,8 @@ export function CatalogView({
   initialCat?: string | null;
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("Catalog");
   const [sel, setSel] = useState<Record<Group, string[]>>({
     cats: initialCat ? [initialCat] : [],
     hosts: [],
@@ -115,7 +113,8 @@ export function CatalogView({
       query: trimmed || undefined,
       metadata: { has_query: Boolean(trimmed) },
     });
-    router.push(trimmed ? `/catalog?q=${encodeURIComponent(trimmed)}` : "/catalog");
+    const catalogPath = withLocale(locale, "/catalog");
+    router.push(trimmed ? `${catalogPath}?q=${encodeURIComponent(trimmed)}` : catalogPath);
   };
 
   useEffect(() => {
@@ -153,7 +152,7 @@ export function CatalogView({
             onClick={() => setSearchOpen((open) => !open)}
           >
             <Ic.search />
-            Search
+            {t("search")}
           </button>
           <button
             className="btn btn-ghost"
@@ -162,18 +161,18 @@ export function CatalogView({
             aria-controls="catalog-filters"
             onClick={() => setFiltersOpen((open) => !open)}
           >
-            Filters
+            {t("filters")}
             {activeFilterCount > 0 && <span className="filter-count">{activeFilterCount}</span>}
           </button>
           <select
             className="select"
             value={sort}
-            aria-label="Sort catalog"
+            aria-label={t("sortAria")}
             onChange={(e) => setSort(e.target.value as SortKey)}
           >
-            <option value="demand">Most requested</option>
-            <option value="brand">Brand A-Z</option>
-            <option value="category">Category A-Z</option>
+            <option value="demand">{t("mostRequested")}</option>
+            <option value="brand">{t("brandAz")}</option>
+            <option value="category">{t("categoryAz")}</option>
           </select>
         </div>
         <div
@@ -186,18 +185,18 @@ export function CatalogView({
               value={mobileQuery}
               onChange={(e) => setMobileQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && goSearch()}
-              placeholder="Paste a part number"
-              aria-label="Search parts"
+              placeholder={t("pastePart")}
+              aria-label={t("search")}
             />
           </div>
           <button className="btn btn-primary" type="button" onClick={goSearch}>
-            Find
+            {t("find")}
           </button>
         </div>
         <div className="catalog">
           <aside id="catalog-filters" className={"filters" + (filtersOpen ? " open" : "")}>
             <div className="filter-group">
-              <h3 className="filter-h">Category</h3>
+              <h3 className="filter-h">{t("category")}</h3>
               {CATEGORIES.map((c) => {
                 const on = sel.cats.includes(c.id);
                 return (
@@ -214,7 +213,7 @@ export function CatalogView({
               })}
             </div>
             <div className="filter-group">
-              <h3 className="filter-h">Host system</h3>
+              <h3 className="filter-h">{t("hostSystem")}</h3>
               {HOSTS.map((h) => {
                 const on = sel.hosts.includes(h.id);
                 return (
@@ -231,17 +230,17 @@ export function CatalogView({
               })}
             </div>
             <div className="filter-group">
-              <h3 className="filter-h">Availability</h3>
-              {STOCK_OPTS.map((a) => {
-                const on = sel.stock.includes(a.id);
+              <h3 className="filter-h">{t("availability")}</h3>
+              {STOCK_OPTS.map((id) => {
+                const on = sel.stock.includes(id);
                 return (
                   <div
-                    key={a.id}
+                    key={id}
                     className={"filter-opt" + (on ? " on" : "")}
-                    onClick={() => toggle("stock", a.id)}
+                    onClick={() => toggle("stock", id)}
                   >
                     <span className="box">{on && <Ic.check />}</span>
-                    {a.l}
+                    {id === "in" ? t("inStock") : t("sourceOnRequest")}
                   </div>
                 );
               })}
@@ -252,10 +251,10 @@ export function CatalogView({
             <div className="results-head">
               <div>
                 <h2 className="results-title">
-                  {query ? `Results for “${query}”` : "All inventory"}
+                  {query ? t("resultsFor", { query }) : t("allInventory")}
                 </h2>
                 <p className="results-sub">
-                  {results.length} parts · prioritized by live search demand
+                  {t("partsDemand", { count: results.length })}
                 </p>
               </div>
               <div className="results-tools">
@@ -264,19 +263,17 @@ export function CatalogView({
                   value={sort}
                   onChange={(e) => setSort(e.target.value as SortKey)}
                 >
-                  <option value="demand">Sort: Most requested</option>
-                  <option value="brand">Brand: A-Z</option>
-                  <option value="category">Category: A-Z</option>
+                  <option value="demand">{t("sortMostRequested")}</option>
+                  <option value="brand">{t("sortBrand")}</option>
+                  <option value="category">{t("sortCategory")}</option>
                 </select>
               </div>
             </div>
 
             {results.length === 0 ? (
               <div style={{ padding: "60px 0", textAlign: "center", color: "var(--muted)" }}>
-                <p style={{ fontSize: 15 }}>No indexed match — but we can still source it.</p>
-                <p style={{ fontSize: 13 }}>
-                  Submit the part number and our team will hunt it across our China supply network.
-                </p>
+                <p style={{ fontSize: 15 }}>{t("noMatchTitle")}</p>
+                <p style={{ fontSize: 13 }}>{t("noMatchText")}</p>
               </div>
             ) : (
               <>

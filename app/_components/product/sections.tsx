@@ -1,39 +1,39 @@
 // Product-detail sub-sections (server components). Ported from product.jsx.
+import { useTranslations } from "next-intl";
 import { Ic } from "@/app/_components/icons";
 import { CAT_LABEL, COND, HOST_BY_ID } from "@/app/_lib/taxonomy";
 import type { Part } from "@/app/_lib/types";
 
 export function AvailabilityPanel({ part }: { part: Part }) {
+  const t = useTranslations("Product");
   const availability = part.availabilityLabel ?? (part.stock === "in" ? "In stock" : "Source on request");
   return (
     <div className="price-block">
       <div className="compat-h" style={{ marginBottom: 10 }}>
-        <Ic.bolt /> Request-for-quote availability
+        <Ic.bolt /> {t("availabilityTitle")}
       </div>
       <div className="price-save" style={{ marginTop: 0, paddingTop: 0, borderTop: 0 }}>
         <Ic.shield style={{ width: 15, height: 15, color: "var(--in-stock)" }} />
-        <span>
-          <strong>{availability}</strong> · Send the part number and requirements. We confirm
-          sourcing, testing status, lead time, and quote before any order.
-        </span>
+        <span>{t("availabilityBody", { availability })}</span>
       </div>
     </div>
   );
 }
 
 export function TrustStrip() {
+  const t = useTranslations("Product");
   const items = [
-    { icon: <Ic.shield />, t: "Tested & warrantied", d: "Bench-tested, 6-month warranty on every unit." },
-    { icon: <Ic.clock />, t: "< 2 hr quote", d: "Median response from our sourcing desk." },
-    { icon: <Ic.globe />, t: "Worldwide ship", d: "DDP freight from our China hubs." },
+    { icon: <Ic.shield />, title: t("tested"), desc: t("testedDesc") },
+    { icon: <Ic.clock />, title: t("quoteFast"), desc: t("quoteFastDesc") },
+    { icon: <Ic.globe />, title: t("ship"), desc: t("shipDesc") },
   ];
   return (
     <div className="trust">
       {items.map((it, i) => (
         <div className="trust-item" key={i}>
           {it.icon}
-          <div className="t">{it.t}</div>
-          <div className="d">{it.d}</div>
+          <div className="t">{it.title}</div>
+          <div className="d">{it.desc}</div>
         </div>
       ))}
     </div>
@@ -41,19 +41,20 @@ export function TrustStrip() {
 }
 
 export function Compat({ part }: { part: Part }) {
+  const t = useTranslations("Product");
   const hosts = part.hosts.map((h) => HOST_BY_ID[h]).filter(Boolean);
   return (
     <div className="compat">
       <div className="compat-h">
-        <Ic.link /> Cross-compatibility
+        <Ic.link /> {t("compatTitle")}
       </div>
-      <div className="compat-sub">Verified to fit these host systems and the arms they drive.</div>
+      <div className="compat-sub">{t("compatSub")}</div>
       <div className="compat-list">
         {part.compatibleControllers.length > 0 && (
           <div className="compat-row">
             <div className="h">
-              <div className="b">Controllers</div>
-              <div className="s mono">from product data</div>
+              <div className="b">{t("controllers")}</div>
+              <div className="s mono">{t("fromData")}</div>
             </div>
             <div className="arms">{part.compatibleControllers.join(", ")}</div>
           </div>
@@ -61,8 +62,8 @@ export function Compat({ part }: { part: Part }) {
         {part.compatibleRobotModels.length > 0 && (
           <div className="compat-row">
             <div className="h">
-              <div className="b">Robot models</div>
-              <div className="s mono">matched models</div>
+              <div className="b">{t("robotModels")}</div>
+              <div className="s mono">{t("matchedModels")}</div>
             </div>
             <div className="arms">{part.compatibleRobotModels.join(", ")}</div>
           </div>
@@ -82,23 +83,24 @@ export function Compat({ part }: { part: Part }) {
 }
 
 export function Specs({ part }: { part: Part }) {
+  const t = useTranslations("Product");
   const rows: [string, string, boolean][] = [
-    ["Part number", part.pn, true],
+    [t("specPartNumber"), part.pn, true],
     ...(part.alternativePns.length > 0
-      ? [["Alternative P/N", part.alternativePns.join(", "), true] as [string, string, boolean]]
+      ? [[t("specAlternative"), part.alternativePns.join(", "), true] as [string, string, boolean]]
       : []),
-    ["Manufacturer", part.brand, false],
-    ["Category", CAT_LABEL[part.cat], false],
-    ...(part.categoryL2 ? [["Subcategory", part.categoryL2, false] as [string, string, boolean]] : []),
-    ...(part.series ? [["Series", part.series, true] as [string, string, boolean]] : []),
-    ...(part.equipmentType ? [["Equipment type", part.equipmentType, false] as [string, string, boolean]] : []),
-    ["Condition", COND[part.cond] ?? part.cond, false],
-    ["Lifecycle status", part.life, false],
+    [t("specManufacturer"), part.brand, false],
+    [t("specCategory"), CAT_LABEL[part.cat], false],
+    ...(part.categoryL2 ? [[t("specSubcategory"), part.categoryL2, false] as [string, string, boolean]] : []),
+    ...(part.series ? [[t("specSeries"), part.series, true] as [string, string, boolean]] : []),
+    ...(part.equipmentType ? [[t("specEquipment"), part.equipmentType, false] as [string, string, boolean]] : []),
+    [t("specCondition"), COND[part.cond] ?? part.cond, false],
+    [t("specLifecycle"), part.life, false],
     ...(part.controllerGeneration
-      ? [["Controller generation", part.controllerGeneration, false] as [string, string, boolean]]
+      ? [[t("specGeneration"), part.controllerGeneration, false] as [string, string, boolean]]
       : []),
-    ["Lead time", part.lead, false],
-    ["Warranty", "6 months · functional guarantee", false],
+    [t("specLeadTime"), part.lead, false],
+    [t("specWarranty"), t("warrantyValue"), false],
   ];
   return (
     <div className="specs">

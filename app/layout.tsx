@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
+import { NextIntlClientProvider } from "next-intl";
 import { SITE_NAME, SITE_URL } from "@/app/_lib/seo";
+import enMessages from "@/messages/en.json";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -100,7 +102,11 @@ export default function RootLayout({
           {themeBootstrap}
         </Script>
       </head>
-      <body>{children}</body>
+      <body>
+        <NextIntlClientProvider locale="en" messages={enMessages}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
       <GoogleAnalytics gaId={googleAnalyticsId} />
     </html>
   );

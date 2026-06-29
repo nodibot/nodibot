@@ -164,4 +164,4 @@ conversion-oriented event counts).
 
 For geo breakdowns (country/region/city on events), also apply
 [`supabase/migrations/0007_analytics_geo.sql`](supabase/migrations/0007_analytics_geo.sql).
- 
+  

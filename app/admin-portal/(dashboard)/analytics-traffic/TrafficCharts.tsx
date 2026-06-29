@@ -89,9 +89,11 @@ function eventLabel(eventName: string): string {
   const map: Record<string, string> = {
     catalog_item_click: "Catalog item click",
     catalog_search: "Catalog search",
+    catalog_no_results: "No-result search",
     catalog_filter_change: "Catalog filter change",
     catalog_sort_change: "Catalog sort change",
     rfq_submitted: "RFQ submitted",
+    bulk_rfq_submitted: "Bulk RFQ submitted",
     whatsapp_click: "WhatsApp click",
     email_click: "Email click",
   };

@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Ic } from "@/app/_components/icons";
 import { trackEvent } from "@/app/_lib/analytics-client";
 import { withLocale } from "@/app/_lib/locale-path";
+import { NoMatchRfqForm } from "@/app/_components/rfq/NoMatchRfqForm";
 import { ProductCard, ProductListItem } from "./ProductCard";
 import { CATEGORIES, HOSTS } from "@/app/_lib/taxonomy";
 import {
@@ -86,6 +87,7 @@ export function CatalogView({
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const mounted = useRef(false);
+  const trackedNoResultQueries = useRef<Set<string>>(new Set());
   const query = initialQuery;
 
   const toggle = (group: Group, id: string) =>
@@ -134,6 +136,22 @@ export function CatalogView({
       metadata: { sort, results: results.length },
     });
   }, [sort, query, results.length]);
+
+  useEffect(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery || results.length > 0 || trackedNoResultQueries.current.has(normalizedQuery)) return;
+
+    trackedNoResultQueries.current.add(normalizedQuery);
+    trackEvent({
+      event_name: "catalog_no_results",
+      query,
+      metadata: {
+        cats: sel.cats,
+        hosts: sel.hosts,
+        stock: sel.stock,
+      },
+    });
+  }, [query, results.length, sel.cats, sel.hosts, sel.stock]);
 
   useEffect(() => {
     mounted.current = true;

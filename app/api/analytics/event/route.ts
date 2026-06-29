@@ -5,10 +5,13 @@ import { getSupabase } from "@/app/_lib/supabase";
 type EventName =
   | "catalog_item_click"
   | "catalog_search"
+  | "catalog_no_results"
   | "catalog_filter_change"
   | "catalog_sort_change"
   | "rfq_submitted"
-  | "whatsapp_click";
+  | "bulk_rfq_submitted"
+  | "whatsapp_click"
+  | "email_click";
 
 interface EventBody {
   event_name?: EventName;
@@ -22,10 +25,13 @@ interface EventBody {
 const ALLOWED: EventName[] = [
   "catalog_item_click",
   "catalog_search",
+  "catalog_no_results",
   "catalog_filter_change",
   "catalog_sort_change",
   "rfq_submitted",
+  "bulk_rfq_submitted",
   "whatsapp_click",
+  "email_click",
 ];
 
 function firstForwardedIp(value: string | null): string | null {

@@ -30,6 +30,9 @@ page WhatsApp CTAs.
 Set `NEXT_PUBLIC_CONTACT_EMAILS` to a comma-separated list of recipients for the floating
 **Email us** button (e.g. `robert@hello-nodibot.com,ops@hello-nodibot.com`).
 
+Set `GOOGLE_ANALYTICS_ID` to your Google Analytics measurement ID (for example,
+`G-XXXXXXXXXX`). The app requires this value at startup.
+
 ### 3. Apply the schema
 
 In the Supabase **SQL Editor**, run the contents of

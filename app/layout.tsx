@@ -6,6 +6,7 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const hanken = Hanken_Grotesk({
   variable: "--font-hanken",
@@ -18,6 +19,21 @@ const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
+
+function requiredEnv(name: string, value: string | undefined): string {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    throw new Error(`${name} is not set`);
+  }
+
+  return trimmed;
+}
+
+const googleAnalyticsId = requiredEnv(
+  "GOOGLE_ANALYTICS_ID",
+  process.env.GOOGLE_ANALYTICS_ID,
+);
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -85,6 +101,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body>{children}</body>
+      <GoogleAnalytics gaId={googleAnalyticsId} />
     </html>
   );
 }

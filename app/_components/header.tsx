@@ -93,6 +93,9 @@ export function Header({
               <Link className="topbar-link" href="/catalog">
                 Catalog
               </Link>
+              <Link className="topbar-link" href="/bulk-rfq">
+                Bulk RFQ
+              </Link>
               <a className="topbar-link" href="#how">
                 How it works
               </a>
@@ -106,8 +109,8 @@ export function Header({
 
         <div className="topbar-actions">
           {variant === "app" && (
-            <Link className="topbar-link" href="/catalog">
-              Sell parts
+            <Link className="topbar-link" href="/bulk-rfq">
+              Bulk RFQ
             </Link>
           )}
           <span className="divider-v" />

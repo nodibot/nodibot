@@ -13,7 +13,9 @@ function EventLabel({ eventName }: { eventName: string }) {
     catalog_search: "Catalog search",
     catalog_filter_change: "Catalog filter change",
     catalog_sort_change: "Catalog sort change",
+    catalog_no_results: "No-result search",
     rfq_submitted: "RFQ submitted",
+    bulk_rfq_submitted: "Bulk RFQ submitted",
     whatsapp_click: "WhatsApp click",
     email_click: "Email click",
   };
@@ -61,6 +63,7 @@ export default async function TrafficAnalyticsPage({
   const topConvertingSize = 5;
   const topCountriesSize = 5;
   const topQueriesSize = 5;
+  const topNoResultQueriesSize = 5;
   const recentEventsSize = 15;
 
   const eventBreakdownPage = clampPageForTotal(
@@ -83,6 +86,11 @@ export default async function TrafficAnalyticsPage({
     analytics.topQueries.length,
     topQueriesSize,
   );
+  const topNoResultQueriesPage = clampPageForTotal(
+    parsePageParam(params, "nrPage"),
+    analytics.topNoResultQueries.length,
+    topNoResultQueriesSize,
+  );
   const recentEventsPage = clampPageForTotal(
     parsePageParam(params, "rePage"),
     analytics.recentEvents.length,
@@ -93,6 +101,11 @@ export default async function TrafficAnalyticsPage({
   const pagedTopConverting = paginateItems(analytics.topConvertingParts, topConvertingPage, topConvertingSize);
   const pagedTopCountries = paginateItems(analytics.topCountries, topCountriesPage, topCountriesSize);
   const pagedTopQueries = paginateItems(analytics.topQueries, topQueriesPage, topQueriesSize);
+  const pagedTopNoResultQueries = paginateItems(
+    analytics.topNoResultQueries,
+    topNoResultQueriesPage,
+    topNoResultQueriesSize,
+  );
   const pagedRecentEvents = paginateItems(analytics.recentEvents, recentEventsPage, recentEventsSize);
 
   return (
@@ -324,6 +337,44 @@ export default async function TrafficAnalyticsPage({
             pageSize={topQueriesSize}
             searchParams={params}
             pageParam="qPage"
+          />
+        </div>
+
+        {/* No-result queries */}
+        <div className="admin-table-section">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>No-result search query</th>
+                  <th>Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analytics.topNoResultQueries.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="dim">No no-result search data yet.</td>
+                  </tr>
+                ) : (
+                  pagedTopNoResultQueries.map((row, i) => (
+                    <tr key={row.query}>
+                      <td>{(topNoResultQueriesPage - 1) * topNoResultQueriesSize + i + 1}</td>
+                      <td className="mono">{row.query}</td>
+                      <td>{row.searches}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <Pagination
+            pathname="/admin-portal/analytics-traffic"
+            currentPage={topNoResultQueriesPage}
+            totalItems={analytics.topNoResultQueries.length}
+            pageSize={topNoResultQueriesSize}
+            searchParams={params}
+            pageParam="nrPage"
           />
         </div>
 

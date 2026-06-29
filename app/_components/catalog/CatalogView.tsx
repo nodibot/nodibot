@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Ic } from "@/app/_components/icons";
 import { trackEvent } from "@/app/_lib/analytics-client";
+import { NoMatchRfqForm } from "@/app/_components/rfq/NoMatchRfqForm";
 import { ProductCard, ProductListItem } from "./ProductCard";
 import { CATEGORIES, HOSTS } from "@/app/_lib/taxonomy";
 import {
@@ -88,6 +89,7 @@ export function CatalogView({
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const mounted = useRef(false);
+  const trackedNoResultQueries = useRef<Set<string>>(new Set());
   const query = initialQuery;
 
   const toggle = (group: Group, id: string) =>
@@ -135,6 +137,22 @@ export function CatalogView({
       metadata: { sort, results: results.length },
     });
   }, [sort, query, results.length]);
+
+  useEffect(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery || results.length > 0 || trackedNoResultQueries.current.has(normalizedQuery)) return;
+
+    trackedNoResultQueries.current.add(normalizedQuery);
+    trackEvent({
+      event_name: "catalog_no_results",
+      query,
+      metadata: {
+        cats: sel.cats,
+        hosts: sel.hosts,
+        stock: sel.stock,
+      },
+    });
+  }, [query, results.length, sel.cats, sel.hosts, sel.stock]);
 
   useEffect(() => {
     mounted.current = true;
@@ -272,12 +290,16 @@ export function CatalogView({
             </div>
 
             {results.length === 0 ? (
-              <div style={{ padding: "60px 0", textAlign: "center", color: "var(--muted)" }}>
-                <p style={{ fontSize: 15 }}>No indexed match — but we can still source it.</p>
-                <p style={{ fontSize: 13 }}>
-                  Submit the part number and our team will hunt it across our China supply network.
-                </p>
-              </div>
+              query ? (
+                <div style={{ maxWidth: 760, margin: "0 auto", padding: "18px 0 60px" }}>
+                  <NoMatchRfqForm partPn={query} />
+                </div>
+              ) : (
+                <div style={{ padding: "60px 0", textAlign: "center", color: "var(--muted)" }}>
+                  <p style={{ fontSize: 15 }}>No catalog results match the selected filters.</p>
+                  <p style={{ fontSize: 13 }}>Clear one filter or search by exact part number.</p>
+                </div>
+              )
             ) : (
               <>
                 <div className="grid density-regular catalog-card-grid">

@@ -221,8 +221,8 @@ export function FinalCta() {
           <Link className="btn btn-primary btn-lg" href="/catalog">
             <Ic.search /> Search the catalog
           </Link>
-          <Link className="btn btn-ghost btn-lg" href="/catalog">
-            <Ic.doc /> Request a quote
+          <Link className="btn btn-ghost btn-lg" href="/bulk-rfq">
+            <Ic.doc /> Bulk RFQ
           </Link>
         </div>
       </div>

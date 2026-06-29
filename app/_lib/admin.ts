@@ -167,6 +167,7 @@ export interface AnalyticsOverview {
   topPartsByClick: Array<{ partPn: string; clicks: number }>;
   topConvertingParts: Array<{ partPn: string; clicks: number; rfqs: number; conversionRate: number }>;
   topQueries: Array<{ query: string; searches: number }>;
+  topNoResultQueries: Array<{ query: string; searches: number }>;
   topCountries: Array<{ countryCode: string; count: number }>;
   eventBreakdown: Array<{ eventName: string; count: number }>;
   dailySeries: Array<{ day: string; total: number; clicks: number; searches: number; rfqs: number; whatsapp: number }>;
@@ -212,8 +213,10 @@ function filterRowsByEvent<T extends { event_name: string }>(
         r.event_name === "email_click",
     );
   }
-  if (eventFilter === "searches") return rows.filter((r) => r.event_name === "catalog_search");
-  return rows.filter((r) => r.event_name === "rfq_submitted");
+  if (eventFilter === "searches") {
+    return rows.filter((r) => r.event_name === "catalog_search" || r.event_name === "catalog_no_results");
+  }
+  return rows.filter((r) => r.event_name === "rfq_submitted" || r.event_name === "bulk_rfq_submitted");
 }
 
 export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Promise<AnalyticsOverview> {
@@ -257,6 +260,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
         topPartsByClick: [],
         topConvertingParts: [],
         topQueries: [],
+        topNoResultQueries: [],
         topCountries: [],
         eventBreakdown: [],
         dailySeries: [],
@@ -273,6 +277,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
   const allPartClicks = new Map<string, number>();
   const partRfqs = new Map<string, number>();
   const queryCounts = new Map<string, number>();
+  const noResultQueryCounts = new Map<string, number>();
   const countryCounts = new Map<string, number>();
   const eventCounts = new Map<string, number>();
   const perDay = new Map<string, { total: number; clicks: number; searches: number; rfqs: number; whatsapp: number }>();
@@ -284,8 +289,8 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     const bucket = perDay.get(day) ?? { total: 0, clicks: 0, searches: 0, rfqs: 0, whatsapp: 0 };
     bucket.total += 1;
     if (row.event_name === "catalog_item_click") bucket.clicks += 1;
-    if (row.event_name === "catalog_search") bucket.searches += 1;
-    if (row.event_name === "rfq_submitted") bucket.rfqs += 1;
+    if (row.event_name === "catalog_search" || row.event_name === "catalog_no_results") bucket.searches += 1;
+    if (row.event_name === "rfq_submitted" || row.event_name === "bulk_rfq_submitted") bucket.rfqs += 1;
     if (row.event_name === "whatsapp_click") bucket.whatsapp += 1;
     perDay.set(day, bucket);
 
@@ -295,6 +300,10 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     if (row.event_name === "catalog_search" && row.query) {
       const key = row.query.trim().toLowerCase();
       if (key) queryCounts.set(key, (queryCounts.get(key) ?? 0) + 1);
+    }
+    if (row.event_name === "catalog_no_results" && row.query) {
+      const key = row.query.trim().toLowerCase();
+      if (key) noResultQueryCounts.set(key, (noResultQueryCounts.get(key) ?? 0) + 1);
     }
     if (row.country_code) {
       const cc = row.country_code.toUpperCase();
@@ -306,7 +315,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     if (row.event_name === "catalog_item_click" && row.part_pn) {
       allPartClicks.set(row.part_pn, (allPartClicks.get(row.part_pn) ?? 0) + 1);
     }
-    if (row.event_name === "rfq_submitted" && row.part_pn) {
+    if ((row.event_name === "rfq_submitted" || row.event_name === "bulk_rfq_submitted") && row.part_pn) {
       partRfqs.set(row.part_pn, (partRfqs.get(row.part_pn) ?? 0) + 1);
     }
   }
@@ -317,6 +326,11 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     .slice(0, 10);
 
   const topQueries = [...queryCounts.entries()]
+    .map(([query, searches]) => ({ query, searches }))
+    .sort((a, b) => b.searches - a.searches)
+    .slice(0, 10);
+
+  const topNoResultQueries = [...noResultQueryCounts.entries()]
     .map(([query, searches]) => ({ query, searches }))
     .sort((a, b) => b.searches - a.searches)
     .slice(0, 10);
@@ -360,7 +374,9 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
   }));
 
   const productClicks = allRows.filter((r) => r.event_name === "catalog_item_click").length;
-  const rfqSubmittedEvents = allRows.filter((r) => r.event_name === "rfq_submitted").length;
+  const rfqSubmittedEvents = allRows.filter(
+    (r) => r.event_name === "rfq_submitted" || r.event_name === "bulk_rfq_submitted",
+  ).length;
 
   return {
     sinceIso: since,
@@ -369,13 +385,16 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     totalEvents: rows.length,
     productClicks: rows.filter((r) => r.event_name === "catalog_item_click").length,
     whatsappClicks: rows.filter((r) => r.event_name === "whatsapp_click").length,
-    rfqSubmittedEvents: rows.filter((r) => r.event_name === "rfq_submitted").length,
-    catalogSearches: rows.filter((r) => r.event_name === "catalog_search").length,
+    rfqSubmittedEvents: rows.filter((r) => r.event_name === "rfq_submitted" || r.event_name === "bulk_rfq_submitted")
+      .length,
+    catalogSearches: rows.filter((r) => r.event_name === "catalog_search" || r.event_name === "catalog_no_results")
+      .length,
     inquiriesCreated: inquiriesCount ?? 0,
     rfqPerClickRate: productClicks > 0 ? rfqSubmittedEvents / productClicks : 0,
     topPartsByClick,
     topConvertingParts,
     topQueries,
+    topNoResultQueries,
     topCountries,
     eventBreakdown,
     dailySeries,

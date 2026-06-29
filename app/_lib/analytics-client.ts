@@ -3,9 +3,11 @@
 export type AnalyticsEventName =
   | "catalog_item_click"
   | "catalog_search"
+  | "catalog_no_results"
   | "catalog_filter_change"
   | "catalog_sort_change"
   | "rfq_submitted"
+  | "bulk_rfq_submitted"
   | "whatsapp_click"
   | "email_click";
 

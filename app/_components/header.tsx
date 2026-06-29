@@ -129,6 +129,9 @@ export function Header({
               <Link className="topbar-link" href="/bulk-rfq">
                 Bulk RFQ
               </Link>
+              <Link className="topbar-link" href="/bulk-rfq">
+                Bulk RFQ
+              </Link>
               <a className="topbar-link" href="#how">
                 {t("howItWorks")}
               </a>

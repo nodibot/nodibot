@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Header } from "@/app/_components/header";
 import { Footer } from "@/app/_components/footer";
@@ -10,6 +11,7 @@ import { ProductCard, ProductListItem } from "@/app/_components/catalog/ProductC
 import { Specs, Compat, AvailabilityPanel, TrustStrip } from "@/app/_components/product/sections";
 import { ViewCounter } from "@/app/_components/product/ViewCounter";
 import { RfqForm } from "@/app/_components/rfq/RfqForm";
+import { withLocale } from "@/app/_lib/locale-path";
 import { getActiveParts, getPartByPn } from "@/app/_lib/parts";
 import { absoluteUrl, SITE_NAME } from "@/app/_lib/seo";
 import { CAT_LABEL, COND } from "@/app/_lib/taxonomy";
@@ -67,6 +69,8 @@ export default async function ProductPage({
 
   const allParts = await getActiveParts();
   const related = allParts.filter((p) => p.cat === part.cat && p.id !== part.id).slice(0, 4);
+  const locale = await getLocale();
+  const t = await getTranslations("Product");
 
   // One image per part today; the gallery scales up if that ever changes.
   const galleryImages =
@@ -152,11 +156,11 @@ export default async function ProductPage({
 
       <div className="wrap fade-in">
         <div className="breadcrumb">
-          <Link href="/catalog">Catalog</Link>
+          <Link href={withLocale(locale, "/catalog")}>{t("catalog")}</Link>
           <span className="sep">
             <Ic.chevron style={{ width: 14, height: 14 }} />
           </span>
-          <Link href={`/catalog?cat=${part.cat}`}>{CAT_LABEL[part.cat]}</Link>
+          <Link href={`${withLocale(locale, "/catalog")}?cat=${part.cat}`}>{CAT_LABEL[part.cat]}</Link>
           <span className="sep">
             <Ic.chevron style={{ width: 14, height: 14 }} />
           </span>
@@ -186,13 +190,13 @@ export default async function ProductPage({
             </div>
 
             <div style={{ marginTop: 34 }}>
-              <h3 className="section-h">Specifications</h3>
+              <h3 className="section-h">{t("specifications")}</h3>
               <Specs part={part} />
               <Compat part={part} />
 
               {related.length > 0 && (
                 <>
-                  <h3 className="section-h">Related in {CAT_LABEL[part.cat]}</h3>
+                  <h3 className="section-h">{t("relatedIn", { category: CAT_LABEL[part.cat] })}</h3>
                   <div className="grid density-compact catalog-card-grid">
                     {related.map((p) => (
                       <ProductCard key={p.id} part={p} />
@@ -213,10 +217,7 @@ export default async function ProductPage({
             <div className="pdp-brand">{part.brand}</div>
             <h1 className="pdp-pn mono">{part.pn}</h1>
             <p className="pdp-name">{part.name}</p>
-            <p className="pdp-name">
-              Buy or source this {part.brand} {part.pn} industrial automation replacement with
-              testing status, lead time, and worldwide shipping confirmed before quote.
-            </p>
+            <p className="pdp-name">{t("description", { brand: part.brand, pn: part.pn })}</p>
             <div className="pdp-badges">
               <StockBadge part={part} />
               <LifeBadge life={part.life} />
@@ -236,10 +237,10 @@ export default async function ProductPage({
               }}
             >
               <div className="resp-pill">
-                <span className="pulse" /> {part.views.toLocaleString()} engineers viewed this
+                <span className="pulse" /> {t("engineersViewed", { count: part.views.toLocaleString() })}
               </div>
               <div style={{ fontSize: 12.5, color: "var(--muted)" }}>
-                Lead time · <strong style={{ color: "var(--ink)" }}>{part.lead}</strong>
+                {t("leadTime")} · <strong style={{ color: "var(--ink)" }}>{part.lead}</strong>
               </div>
             </div>
 

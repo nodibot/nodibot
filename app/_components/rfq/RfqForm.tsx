@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Ic } from "@/app/_components/icons";
 import { trackEvent } from "@/app/_lib/analytics-client";
 import { buildContactEmailHref } from "@/app/_lib/contact-email";
@@ -36,33 +37,33 @@ const CHANNELS: { id: Channel; icon: React.ReactNode }[] = [
 ];
 
 function Success({ part, urgency, channel, ticket }: { part: Part; urgency: Urgency; channel: Channel; ticket: string }) {
+  const t = useTranslations("Rfq");
+
   return (
     <div className="rfq-success fade-in">
       <div className="check">
         <Ic.check />
       </div>
-      <h3>{urgency === "down" ? "Priority quote in progress" : "Request received"}</h3>
+      <h3>{urgency === "down" ? t("successPriority") : t("successNormal")}</h3>
       <p>
-        Our sourcing desk is cross-referencing verified suppliers for{" "}
+        {t("successBody", { pn: part.pn })}{" "}
         <strong className="mono" style={{ color: "var(--ink)" }}>
           {part.pn}
         </strong>
-        .
-        {urgency === "down"
-          ? " Flagged as line-down — expect a response within the hour."
-          : " You'll have a quote within 2 business hours."}
+        . {urgency === "down" ? t("lineDownResponse") : t("normalResponse")}
       </p>
       <div className="rfq-ticket">
-        Reference {ticket} · we&apos;ll reply via {channel}
+        {t("reference", { ticket, channel })}
       </div>
       <div className="resp-pill" style={{ justifyContent: "center" }}>
-        <span className="pulse" /> Sourcing desk online · 06:00–23:00 CST
+        <span className="pulse" /> {t("deskOnline")}
       </div>
     </div>
   );
 }
 
 export function RfqForm({ part }: { part: Part }) {
+  const t = useTranslations("Rfq");
   const [form, setForm] = useState<FormState>(INITIAL);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [showDetails, setShowDetails] = useState(false);
@@ -118,7 +119,7 @@ export function RfqForm({ part }: { part: Part }) {
       });
       setResult({ ticket: data.ticket });
     } catch {
-      setServerError("Something went wrong sending your request. Please try again.");
+      setServerError(t("serverError"));
     } finally {
       setSubmitting(false);
     }
@@ -133,14 +134,14 @@ export function RfqForm({ part }: { part: Part }) {
       <div className={"rfq-top" + (form.urgency === "down" ? " urgent-mode" : "")}>
         <div className="rfq-title">
           {form.urgency === "down" ? <Ic.bolt /> : <Ic.doc />}
-          Request availability quote
+          {t("title")}
         </div>
         <div className="rfq-sub">
           For{" "}
           <span className="mono" style={{ color: "var(--ink)", fontWeight: 600 }}>
             {part.pn}
           </span>{" "}
-          — no payment now. We locate it, test it, and quote you.
+          - {t("subtitle", { pn: part.pn })}
         </div>
       </div>
 
@@ -156,7 +157,7 @@ export function RfqForm({ part }: { part: Part }) {
                 trackEvent({ event_name: "whatsapp_click", part_pn: part.pn, metadata: { surface: "rfq_panel" } })
               }
             >
-              <Ic.whatsapp /> WhatsApp quote
+              <Ic.whatsapp /> {t("whatsappQuote")}
             </a>
           )}
           {emailHref && (
@@ -165,17 +166,17 @@ export function RfqForm({ part }: { part: Part }) {
               href={emailHref}
               onClick={() => trackEvent({ event_name: "email_click", part_pn: part.pn, metadata: { surface: "rfq_panel" } })}
             >
-              <Ic.mail /> Email quote
+              <Ic.mail /> {t("emailQuote")}
             </a>
           )}
         </div>
 
-        <div className="rfq-or">or leave one contact and we&apos;ll reply</div>
+        <div className="rfq-or">{t("orContact")}</div>
 
         {/* contact channel */}
         <div className="field">
           <label>
-            Contact channel <span className="req">*</span>
+            {t("contactChannel")} <span className="req">*</span>
           </label>
           <div className="chan">
             {CHANNELS.map((c) => (
@@ -193,17 +194,17 @@ export function RfqForm({ part }: { part: Part }) {
 
         <div className="field-row">
           <div className="field">
-            <label>Name / company</label>
+            <label>{t("nameCompany")}</label>
             <input
               className={errors.name ? "err" : ""}
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
-              placeholder="Optional"
+              placeholder={t("optional")}
             />
           </div>
           <div className="field">
             <label>
-              {form.channel === "Email" ? "Work email" : form.channel === "Phone" ? "Phone number" : "WhatsApp number"}{" "}
+              {form.channel === "Email" ? t("workEmail") : form.channel === "Phone" ? t("phone") : t("whatsappNumber")}{" "}
               <span className="req">*</span>
             </label>
             <input
@@ -212,19 +213,19 @@ export function RfqForm({ part }: { part: Part }) {
               onChange={(e) => set("contact", e.target.value)}
               placeholder={form.channel === "Email" ? "you@factory.com" : "+86 138 0000 0000"}
             />
-            {errors.contact && <span className="errmsg">Required so we can send your quote</span>}
+            {errors.contact && <span className="errmsg">{t("contactRequired")}</span>}
           </div>
         </div>
 
         <button className="rfq-details-toggle" type="button" onClick={() => setShowDetails((open) => !open)}>
-          {showDetails ? "Hide details" : "Add quantity, urgency, or notes"}
+          {showDetails ? t("hideDetails") : t("showDetails")}
         </button>
 
         {showDetails && (
           <div className="rfq-details">
             {/* urgency */}
             <div className="field">
-              <label>Machine status</label>
+              <label>{t("machineStatus")}</label>
               <div className="seg">
                 <div
                   className={"seg-opt urgent" + (form.urgency === "down" ? " on urgent" : "")}
@@ -232,9 +233,9 @@ export function RfqForm({ part }: { part: Part }) {
                 >
                   <span className="st">
                     <span className="ic" />
-                    Line down
+                    {t("lineDown")}
                   </span>
-                  <span className="sd">Emergency · prioritized</span>
+                  <span className="sd">{t("lineDownDesc")}</span>
                 </div>
                 <div
                   className={"seg-opt" + (form.urgency === "spare" ? " on" : "")}
@@ -242,16 +243,16 @@ export function RfqForm({ part }: { part: Part }) {
                 >
                   <span className="st">
                     <span className="ic" />
-                    Stocking spares
+                    {t("spares")}
                   </span>
-                  <span className="sd">Planning ahead</span>
+                  <span className="sd">{t("sparesDesc")}</span>
                 </div>
               </div>
             </div>
 
             <div className="field-row">
               <div className="field">
-                <label>Quantity</label>
+                <label>{t("quantity")}</label>
                 <input
                   value={form.qty}
                   onChange={(e) => set("qty", e.target.value)}
@@ -260,30 +261,30 @@ export function RfqForm({ part }: { part: Part }) {
                 />
               </div>
               <div className="field">
-                <label>Condition</label>
+                <label>{t("condition")}</label>
                 <select value={form.cond} onChange={(e) => set("cond", e.target.value)}>
-                  <option value="any">Any tested unit</option>
-                  <option value="refurb">Refurbished only</option>
-                  <option value="exchange">Core exchange</option>
+                  <option value="any">{t("anyTested")}</option>
+                  <option value="refurb">{t("refurbOnly")}</option>
+                  <option value="exchange">{t("exchange")}</option>
                 </select>
               </div>
             </div>
 
             <div className="field">
-              <label>Company</label>
+              <label>{t("company")}</label>
               <input
                 value={form.company}
                 onChange={(e) => set("company", e.target.value)}
-                placeholder="Plant / integrator"
+                placeholder={t("companyPlaceholder")}
               />
             </div>
 
             <div className="field">
-              <label>Notes</label>
+              <label>{t("notes")}</label>
               <textarea
                 value={form.notes}
                 onChange={(e) => set("notes", e.target.value)}
-                placeholder="Serial / firmware revision, host system, deadline..."
+                placeholder={t("notesPlaceholder")}
               />
             </div>
           </div>
@@ -294,10 +295,10 @@ export function RfqForm({ part }: { part: Part }) {
         <button className="btn btn-primary btn-lg btn-block" onClick={submit} disabled={submitting}>
           <Ic.bolt />{" "}
           {submitting
-            ? "Sending…"
+            ? t("sending")
             : form.urgency === "down"
-              ? "Send priority request"
-              : "Request quote"}
+              ? t("sendPriority")
+              : t("requestQuote")}
         </button>
         {serverError && (
           <div className="errmsg" style={{ marginTop: 10, textAlign: "center" }}>
@@ -305,7 +306,7 @@ export function RfqForm({ part }: { part: Part }) {
           </div>
         )}
         <div className="rfq-assure">
-          <Ic.shield /> Verified-refurb guarantee · no payment until you approve the quote
+          <Ic.shield /> {t("assurance")}
         </div>
       </div>
     </div>

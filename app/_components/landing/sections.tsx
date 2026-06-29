@@ -1,16 +1,18 @@
 // Static marketing sections for the landing page (server components).
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { Ic } from "@/app/_components/icons";
 import { WaChatLink } from "@/app/_components/WaChatLink";
+import { withLocale } from "@/app/_lib/locale-path";
 import { CATEGORIES, HOSTS } from "@/app/_lib/taxonomy";
 
 export function HostStrip() {
+  const t = useTranslations("LandingSections");
+
   return (
     <section className="lp-strip" id="hosts">
       <div className="wrap">
-        <div className="lp-strip-label">
-          Parts salvaged from &amp; verified to fit every major platform
-        </div>
+        <div className="lp-strip-label">{t("hostStrip")}</div>
         <div className="lp-strip-row">
           {HOSTS.map((h) => (
             <span className="host" key={h.id}>
@@ -24,29 +26,28 @@ export function HostStrip() {
 }
 
 const STEPS = [
-  { n: "1", t: "Paste the part number", d: "Search the alphanumeric code off your faulty unit — exactly how you'd Google it.", accent: false },
-  { n: "2", t: "Request a quote", d: "No cart, no payment. Flag line-down or spares, pick a channel, hit send.", accent: false },
-  { n: "3", t: "We source it", d: "Our desk works a verified China supply network to locate and bench-test the part.", accent: true },
-  { n: "4", t: "Tested part ships", d: "Approve the quote and it ships DDP, with a 6-month functional warranty.", accent: false },
+  { n: "1", accent: false },
+  { n: "2", accent: false },
+  { n: "3", accent: true },
+  { n: "4", accent: false },
 ];
 
 export function HowItWorks() {
+  const t = useTranslations("LandingSections");
+
   return (
     <section className="lp-section" id="how">
       <div className="wrap">
-        <div className="lp-eyebrow">How it works</div>
-        <h2 className="lp-h2">From breakdown to a tested part in hand.</h2>
-        <p className="lp-lead">
-          A request-for-quote loop built for emergencies — not a checkout cart that quotes you a
-          part nobody has in stock.
-        </p>
+        <div className="lp-eyebrow">{t("howEyebrow")}</div>
+        <h2 className="lp-h2">{t("howTitle")}</h2>
+        <p className="lp-lead">{t("howLead")}</p>
         <div className="lp-steps">
           {STEPS.map((s) => (
             <div className={"lp-step" + (s.accent ? " accent" : "")} key={s.n}>
               <div className="connector" />
               <div className="num">{s.n}</div>
-              <h3>{s.t}</h3>
-              <p>{s.d}</p>
+              <h3>{t(`steps.${s.n}.title`)}</h3>
+              <p>{t(`steps.${s.n}.desc`)}</p>
             </div>
           ))}
         </div>
@@ -56,23 +57,26 @@ export function HowItWorks() {
 }
 
 export function Pillars() {
+  const locale = useLocale();
+  const t = useTranslations("LandingSections");
+
   return (
     <section className="lp-section tight" id="pillars" style={{ borderTop: "1px solid var(--border)" }}>
       <div className="wrap">
-        <div className="lp-eyebrow">What we source</div>
-        <h2 className="lp-h2">Five tiers of high-demand automation parts.</h2>
+        <div className="lp-eyebrow">{t("sourceEyebrow")}</div>
+        <h2 className="lp-h2">{t("sourceTitle")}</h2>
         <div className="lp-pillars">
           {CATEGORIES.map((c, i) => (
             <Link
               className={"lp-pillar" + (i === 0 ? " span2" : "")}
               key={c.id}
-              href={`/catalog?cat=${c.id}`}
+              href={`${withLocale(locale, "/catalog")}?cat=${c.id}`}
             >
               <span className="tier">{c.tier}</span>
               <h3>{c.label}</h3>
               <p>{c.blurb}</p>
               <div className="go">
-                Browse <Ic.arrowR />
+                {t("browse")} <Ic.arrowR />
               </div>
             </Link>
           ))}
@@ -83,25 +87,27 @@ export function Pillars() {
 }
 
 const VALUES = [
-  { icon: <Ic.shield />, t: "Verified-refurb guarantee", d: "Every unit is bench-tested and ships with a 6-month functional warranty. No payment until you approve the quote." },
-  { icon: <Ic.clock />, t: "Quotes in under 2 hours", d: "A live sourcing desk, not an inbox. Flag a line-down emergency and it jumps the queue." },
-  { icon: <Ic.tag />, t: "RFQ-first sourcing", d: "No public cart pricing. We confirm availability, testing status, lead time and quote after checking the exact part." },
-  { icon: <Ic.link />, t: "Cross-compatibility checked", d: "Each part is mapped to the host controllers and the robot arms it drives, so you order with confidence." },
+  { icon: <Ic.shield />, key: "guarantee" },
+  { icon: <Ic.clock />, key: "speed" },
+  { icon: <Ic.tag />, key: "rfq" },
+  { icon: <Ic.link />, key: "compat" },
 ];
 
 export function WhyNodibot() {
+  const t = useTranslations("LandingSections");
+
   return (
     <section className="lp-section lp-why">
       <div className="wrap">
-        <div className="lp-eyebrow">Why nodibot</div>
-        <h2 className="lp-h2">Built for the engineer with a stopped production line.</h2>
+        <div className="lp-eyebrow">{t("whyEyebrow")}</div>
+        <h2 className="lp-h2">{t("whyTitle")}</h2>
         <div className="lp-values">
           {VALUES.map((v, i) => (
             <div className="lp-value" key={i}>
               <div className="ic">{v.icon}</div>
               <div>
-                <h3>{v.t}</h3>
-                <p>{v.d}</p>
+                <h3>{t(`values.${v.key}.title`)}</h3>
+                <p>{t(`values.${v.key}.desc`)}</p>
               </div>
             </div>
           ))}
@@ -112,20 +118,19 @@ export function WhyNodibot() {
 }
 
 export function SourcingConfidence() {
+  const locale = useLocale();
+  const t = useTranslations("LandingSections");
+
   return (
     <section className="lp-section">
       <div className="wrap">
         <div className="lp-price-grid">
           <div>
-            <div className="lp-eyebrow">Sourcing confidence</div>
-            <h2 className="lp-h2">Confirm the right part before you buy.</h2>
-            <p className="lp-lead">
-              Legacy automation parts are messy: superseded models, repair-only stock, and
-              compatibility traps. We keep the catalog focused on identification and RFQ so your
-              quote is checked against the exact controller, robot model, and urgency.
-            </p>
-            <Link className="btn btn-dark btn-lg" style={{ marginTop: 26 }} href="/catalog">
-              Browse the catalog <Ic.arrowR />
+            <div className="lp-eyebrow">{t("confidenceEyebrow")}</div>
+            <h2 className="lp-h2">{t("confidenceTitle")}</h2>
+            <p className="lp-lead">{t("confidenceLead")}</p>
+            <Link className="btn btn-dark btn-lg" style={{ marginTop: 26 }} href={withLocale(locale, "/catalog")}>
+              {t("browseCatalog")} <Ic.arrowR />
             </Link>
           </div>
           <div className="lp-compare">
@@ -146,28 +151,28 @@ export function SourcingConfidence() {
                 </div>
                 <div className="pn mono">3HAC028357-001</div>
               </div>
-              <span className="badge badge-life">Discontinued</span>
+              <span className="badge badge-life">{t("discontinued")}</span>
             </div>
             <div className="lp-compare-body">
               <div className="lp-compare-row muted">
                 <span className="lbl">
                   <span className="dotc" style={{ background: "var(--muted)" }} />
-                  Compatibility
+                  {t("compatibility")}
                 </span>
                 <span className="amt">IRC5</span>
               </div>
               <div className="lp-compare-row">
                 <span className="lbl">
                   <span className="dotc" style={{ background: "var(--accent)" }} />
-                  Availability
+                  {t("rfqReady")}
                 </span>
                 <span className="amt" style={{ color: "var(--accent)" }}>
-                  RFQ ready
+                  {t("availability")}
                 </span>
               </div>
             </div>
             <div className="lp-compare-foot">
-              <Ic.tag style={{ width: 16, height: 16 }} /> Quote confirmed after sourcing review
+              <Ic.tag style={{ width: 16, height: 16 }} /> {t("quoteConfirmed")}
             </div>
           </div>
         </div>
@@ -177,18 +182,18 @@ export function SourcingConfidence() {
 }
 
 export function EmergencyBand() {
+  const locale = useLocale();
+  const t = useTranslations("LandingSections");
+
   return (
     <section className="lp-section tight">
       <div className="wrap">
         <div className="lp-band">
-          <h2>Line down right now?</h2>
-          <p>
-            Skip the form. Message our sourcing desk on WhatsApp with your part number and we&apos;ll
-            start hunting immediately.
-          </p>
+          <h2>{t("emergencyTitle")}</h2>
+          <p>{t("emergencyText")}</p>
           <div className="cta-row">
             <WaChatLink className="btn btn-wa btn-lg">
-              <Ic.whatsapp /> Chat to source now
+              <Ic.whatsapp /> {t("chatNow")}
             </WaChatLink>
             <Link
               className="btn btn-lg"
@@ -197,9 +202,9 @@ export function EmergencyBand() {
                 color: "#fff",
                 border: "1px solid rgba(255,255,255,.2)",
               }}
-              href="/catalog"
+              href={withLocale(locale, "/catalog")}
             >
-              <Ic.bolt /> Find my part
+              <Ic.bolt /> {t("findMyPart")}
             </Link>
           </div>
         </div>
@@ -209,20 +214,21 @@ export function EmergencyBand() {
 }
 
 export function FinalCta() {
+  const locale = useLocale();
+  const t = useTranslations("LandingSections");
+
   return (
     <section className="lp-section lp-final">
       <div className="wrap lp-center">
-        <div className="lp-eyebrow">Start sourcing</div>
-        <h2>Got a part number?</h2>
-        <p className="lp-lead">
-          Drop it in and we&apos;ll tell you what we can source, what it costs, and how fast it ships.
-        </p>
+        <div className="lp-eyebrow">{t("startEyebrow")}</div>
+        <h2>{t("startTitle")}</h2>
+        <p className="lp-lead">{t("startLead")}</p>
         <div className="cta-row">
-          <Link className="btn btn-primary btn-lg" href="/catalog">
-            <Ic.search /> Search the catalog
+          <Link className="btn btn-primary btn-lg" href={withLocale(locale, "/catalog")}>
+            <Ic.search /> {t("searchCatalog")}
           </Link>
-          <Link className="btn btn-ghost btn-lg" href="/bulk-rfq">
-            <Ic.doc /> Bulk RFQ
+          <Link className="btn btn-ghost btn-lg" href={withLocale(locale, "/catalog")}>
+            <Ic.doc /> {t("requestQuote")}
           </Link>
         </div>
       </div>

@@ -1,5 +1,5 @@
-// Pure CSV parsing for lead import. Expects a header row containing at least
-// `company` and `email`; optional `contact_name`, `part_number`, `note`.
+// Lead import parsing from tabular data (CSV text or spreadsheet rows).
+// Header row must include `company` and `email`; optional `contact_name`, `part_number`, `note`.
 
 export interface ParsedLead {
   company: string;
@@ -9,16 +9,15 @@ export interface ParsedLead {
   note: string | null;
 }
 
-export interface CsvParseResult {
+export interface LeadImportResult {
   rows: ParsedLead[];
   errors: string[];
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const HEADER_ERROR = "Header row must include 'company' and 'email'";
 
 function splitLine(line: string): string[] {
-  // Minimal CSV: split on commas, trim. (Lead lists rarely embed commas; the
-  // import UI documents this limitation.)
   return line.split(",").map((c) => c.trim());
 }
 
@@ -26,30 +25,47 @@ function emptyToNull(v: string | undefined): string | null {
   return v && v.trim() ? v.trim() : null;
 }
 
-export function parseLeadsCsv(text: string): CsvParseResult {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+function stripBom(text: string): string {
+  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+}
+
+function normalizeTableRows(raw: unknown[][]): string[][] {
+  return raw
+    .map((row) => (Array.isArray(row) ? row : []).map((cell) => String(cell ?? "").trim()))
+    .filter((row) => row.some((cell) => cell.length > 0));
+}
+
+export function parseLeadRows(raw: unknown[][]): LeadImportResult {
+  const table = normalizeTableRows(raw);
   const rows: ParsedLead[] = [];
   const errors: string[] = [];
-  if (lines.length === 0) return { rows, errors: ["CSV is empty"] };
 
-  const header = splitLine(lines[0]).map((h) => h.toLowerCase());
+  if (table.length === 0) return { rows, errors: ["File is empty"] };
+
+  const header = table[0].map((h) => h.toLowerCase());
   const idx = (name: string) => header.indexOf(name);
-  const ci = { company: idx("company"), contact: idx("contact_name"), email: idx("email"), part: idx("part_number"), note: idx("note") };
+  const ci = {
+    company: idx("company"),
+    contact: idx("contact_name"),
+    email: idx("email"),
+    part: idx("part_number"),
+    note: idx("note"),
+  };
 
   if (ci.company === -1 || ci.email === -1) {
-    return { rows, errors: ["CSV header must include 'company' and 'email'"] };
+    return { rows, errors: [HEADER_ERROR] };
   }
 
-  for (let i = 1; i < lines.length; i++) {
-    const cells = splitLine(lines[i]);
+  for (let i = 1; i < table.length; i++) {
+    const cells = table[i];
     const company = emptyToNull(cells[ci.company]);
     const email = (cells[ci.email] ?? "").trim().toLowerCase();
     if (!company) {
-      errors.push(`Line ${i + 1}: missing company — skipped`);
+      errors.push(`Row ${i + 1}: missing company — skipped`);
       continue;
     }
     if (!EMAIL_RE.test(email)) {
-      errors.push(`Line ${i + 1}: invalid email '${cells[ci.email] ?? ""}' — skipped`);
+      errors.push(`Row ${i + 1}: invalid email '${cells[ci.email] ?? ""}' — skipped`);
       continue;
     }
     rows.push({
@@ -63,3 +79,13 @@ export function parseLeadsCsv(text: string): CsvParseResult {
 
   return { rows, errors };
 }
+
+export function parseLeadsCsv(text: string): LeadImportResult {
+  const normalized = stripBom(text);
+  const lines = normalized.split(/\r?\n/).filter((l) => l.trim().length > 0);
+  if (lines.length === 0) return { rows: [], errors: ["File is empty"] };
+  return parseLeadRows(lines.map(splitLine));
+}
+
+/** @deprecated use LeadImportResult */
+export type CsvParseResult = LeadImportResult;

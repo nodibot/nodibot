@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createGmailSender } from "@/app/_lib/gmail";
 import { createSupabaseServerClient } from "@/app/_lib/supabase-server";
-import { addLead, getLeadsByIds, importLeads, saveSettings, saveTemplate } from "@/app/_lib/outreach/queries";
-import { parseLeadsCsv } from "@/app/_lib/outreach/csv";
+import { addLead, deleteLead, getLeadsByIds, importLeads, saveSettings, saveTemplate, updateLead } from "@/app/_lib/outreach/queries";
+import { parseLeadsFile } from "@/app/_lib/outreach/import-leads";
 import { sendOutreachToLead, sleep } from "@/app/_lib/outreach/send";
 import type { TemplateKind } from "@/app/_lib/outreach/types";
 
@@ -22,11 +22,47 @@ export async function addLeadAction(formData: FormData) {
 }
 
 export async function importLeadsAction(_prev: unknown, formData: FormData): Promise<{ imported: number; errors: string[] }> {
-  const text = String(formData.get("csv") ?? "");
-  const { rows, errors } = parseLeadsCsv(text);
+  const file = formData.get("csv");
+  if (!(file instanceof File) || file.size === 0) {
+    return { imported: 0, errors: ["Choose a CSV or Excel file to import."] };
+  }
+
+  const { rows, errors } = await parseLeadsFile(file);
+  if (rows.length === 0 && errors.length === 0) {
+    return { imported: 0, errors: ["File has no data rows."] };
+  }
+
   const imported = await importLeads(rows);
   revalidatePath("/admin-portal/outreach");
   return { imported, errors };
+}
+
+export async function updateLeadAction(_prev: unknown, formData: FormData): Promise<{ ok: boolean; error: string | null }> {
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) return { ok: false, error: "Missing lead id" };
+
+  try {
+    await updateLead(id, {
+      company: String(formData.get("company") ?? "").trim(),
+      contact_name: String(formData.get("contact_name") ?? "").trim() || null,
+      email: String(formData.get("email") ?? "").trim().toLowerCase(),
+      part_number: String(formData.get("part_number") ?? "").trim() || null,
+      note: String(formData.get("note") ?? "").trim() || null,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Update failed";
+    return { ok: false, error: message };
+  }
+
+  revalidatePath("/admin-portal/outreach");
+  return { ok: true, error: null };
+}
+
+export async function deleteLeadAction(formData: FormData) {
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) throw new Error("Missing lead id");
+  await deleteLead(id);
+  revalidatePath("/admin-portal/outreach");
 }
 
 export async function saveTemplateAction(formData: FormData) {

@@ -45,6 +45,24 @@ export async function addLead(input: { company: string; contact_name: string | n
   if (error) throw new Error(error.message);
 }
 
+export async function updateLead(
+  id: string,
+  input: { company: string; contact_name: string | null; email: string; part_number: string | null; note: string | null },
+): Promise<void> {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("outreach_leads")
+    .update({ ...input, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteLead(id: string): Promise<void> {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from("outreach_leads").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 // Upsert imported rows by email (no duplicates). Returns inserted/updated count.
 export async function importLeads(rows: ParsedLead[]): Promise<number> {
   if (rows.length === 0) return 0;

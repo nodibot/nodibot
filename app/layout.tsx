@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
-import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { ThemeBootstrap } from "@/app/_components/ThemeBootstrap";
 import { SITE_NAME, SITE_URL } from "@/app/_lib/seo";
 import enMessages from "@/messages/en.json";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-import { GoogleAnalytics } from "@next/third-parties/google";
 
 const hanken = Hanken_Grotesk({
   variable: "--font-hanken",
@@ -85,11 +85,6 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-// Applies the persisted theme before paint to avoid a flash of the wrong theme.
-const themeBootstrap = `
-(function(){try{var t=localStorage.getItem("nodibot-theme");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();
-`;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -102,17 +97,13 @@ export default function RootLayout({
       className={`${hanken.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
-      <head>
-        <Script id="theme-bootstrap" strategy="beforeInteractive">
-          {themeBootstrap}
-        </Script>
-      </head>
       <body>
+        <ThemeBootstrap />
         <NextIntlClientProvider locale="en" messages={enMessages}>
           {children}
         </NextIntlClientProvider>
+        <GoogleAnalytics gaId={googleAnalyticsId} />
       </body>
-      <GoogleAnalytics gaId={googleAnalyticsId} />
     </html>
   );
 }

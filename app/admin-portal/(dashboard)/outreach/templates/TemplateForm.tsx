@@ -4,18 +4,48 @@ import { saveTemplateAction } from "../actions";
 
 export function TemplateForm() {
   return (
-    <form action={saveTemplateAction} style={{ display: "grid", gap: 8, maxWidth: 640 }}>
-      <input name="name" placeholder="Template name *" required />
-      <select name="kind" defaultValue="initial">
-        <option value="initial">initial</option>
-        <option value="reminder">reminder</option>
-      </select>
-      <input name="subject" placeholder="Subject *" required />
-      <textarea name="body" rows={8} placeholder="Hi {{contact_name}}, we stock parts for {{company}}…" required />
-      <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <input type="checkbox" name="active" defaultChecked /> Active
+    <form action={saveTemplateAction} className="admin-form">
+      <div className="grid2">
+        <div className="field">
+          <label>
+            Template name <span className="req">*</span>
+          </label>
+          <input name="name" placeholder="Initial outreach v1" required />
+        </div>
+        <div className="field">
+          <label>Kind</label>
+          <select name="kind" defaultValue="initial" className="select">
+            <option value="initial">initial</option>
+            <option value="reminder">reminder</option>
+          </select>
+        </div>
+      </div>
+      <div className="field">
+        <label>
+          Subject <span className="req">*</span>
+        </label>
+        <input name="subject" placeholder="Parts sourcing for {{company}}" required />
+      </div>
+      <div className="field">
+        <label>
+          Body <span className="req">*</span>
+        </label>
+        <textarea
+          name="body"
+          rows={10}
+          placeholder="Hi {{contact_name}}, we can help source {{part_number}} for {{company}}…"
+          required
+        />
+      </div>
+      <label className="admin-toggle">
+        <input type="checkbox" name="active" defaultChecked />
+        Active template
       </label>
-      <button type="submit" className="btn">Save template</button>
+      <div className="admin-form-foot">
+        <button type="submit" className="btn btn-primary">
+          Save template
+        </button>
+      </div>
     </form>
   );
 }

@@ -24,15 +24,21 @@ export const metadata: Metadata = {
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; cat?: string }>;
+  searchParams: Promise<{ q?: string; cat?: string; page?: string }>;
 }) {
-  const { q, cat } = await searchParams;
+  const params = await searchParams;
+  const { q, cat } = params;
   const parts = await getActiveParts();
 
   return (
-    <div className="app">
-      <Header variant="app" initialQuery={q ?? ""} />
-      <CatalogView parts={parts} initialQuery={q ?? ""} initialCat={cat ?? null} />
+    <div className="app app-catalog">
+      <Header variant="app" initialQuery={q ?? ""} key={q ?? ""} />
+      <CatalogView
+        parts={parts}
+        initialQuery={q ?? ""}
+        initialCat={cat ?? null}
+        searchParams={params}
+      />
       <Footer />
       <WaFloat />
     </div>

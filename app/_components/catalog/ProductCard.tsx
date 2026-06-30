@@ -8,7 +8,7 @@ import { trackEvent } from "@/app/_lib/analytics-client";
 import { withLocale } from "@/app/_lib/locale-path";
 import type { Part } from "@/app/_lib/types";
 
-export function ProductCard({ part }: { part: Part }) {
+export function ProductCard({ part, revealIndex }: { part: Part; revealIndex?: number }) {
   const locale = useLocale();
   const t = useTranslations("Catalog");
   const trackClick = (surface: "card" | "list") => {
@@ -21,7 +21,8 @@ export function ProductCard({ part }: { part: Part }) {
 
   return (
     <Link
-      className="card fade-in"
+      className="card catalog-card-enter"
+      style={typeof revealIndex === "number" ? { animationDelay: `${Math.min(revealIndex, 11) * 45}ms` } : undefined}
       href={withLocale(locale, `/products/${encodeURIComponent(part.pn)}`)}
       onPointerDown={() => trackClick("card")}
     >
@@ -63,7 +64,7 @@ export function ProductListItem({ part }: { part: Part }) {
 
   return (
     <Link
-      className="part-row fade-in"
+      className="part-row"
       href={withLocale(locale, `/products/${encodeURIComponent(part.pn)}`)}
       onPointerDown={() => trackClick("list")}
     >

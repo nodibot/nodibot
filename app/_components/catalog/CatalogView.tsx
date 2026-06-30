@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Ic } from "@/app/_components/icons";
 import { trackEvent } from "@/app/_lib/analytics-client";
 import { NoMatchRfqForm } from "@/app/_components/rfq/NoMatchRfqForm";
 import { withLocale } from "@/app/_lib/locale-path";
 import { ProductCard, ProductListItem } from "./ProductCard";
+import { CatalogScrollReveal, useMobileCatalogLayout } from "./CatalogScrollReveal";
+import { CatalogTopbarMeasure, scrollToCatalogResults } from "./CatalogTopbarMeasure";
+import { Pagination, paginateItems, parsePageParam, clampPageForTotal } from "@/app/_components/Pagination";
 import { CATEGORIES, HOSTS } from "@/app/_lib/taxonomy";
 import {
   computeCounts,
@@ -19,6 +21,7 @@ import type { Part } from "@/app/_lib/types";
 
 type Group = "cats" | "hosts" | "stock";
 const STOCK_OPTS = ["in", "request"] as const;
+const CATALOG_PAGE_SIZE = 20;
 
 function CatalogHero({
   hostFilter,
@@ -69,22 +72,22 @@ export function CatalogView({
   parts,
   initialQuery = "",
   initialCat = null,
+  searchParams = {},
 }: {
   parts: Part[];
   initialQuery?: string;
   initialCat?: string | null;
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
-  const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("Catalog");
+  const isMobileCatalog = useMobileCatalogLayout();
   const [sel, setSel] = useState<Record<Group, string[]>>({
     cats: initialCat ? [initialCat] : [],
     hosts: [],
     stock: [],
   });
   const [sort, setSort] = useState<SortKey>("demand");
-  const [mobileQuery, setMobileQuery] = useState(initialQuery);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const mounted = useRef(false);
   const trackedNoResultQueries = useRef<Set<string>>(new Set());
@@ -107,17 +110,48 @@ export function CatalogView({
     [parts, sel, query, sort],
   );
 
+  const currentPage = clampPageForTotal(
+    parsePageParam(searchParams),
+    results.length,
+    CATALOG_PAGE_SIZE,
+  );
+  const pagedResults = paginateItems(results, currentPage, CATALOG_PAGE_SIZE);
+  const catalogPath = withLocale(locale, "/catalog");
+  const paginationSearchParams = useMemo(() => {
+    const params: Record<string, string> = {};
+    if (query) params.q = query;
+    if (initialCat) params.cat = initialCat;
+    return params;
+  }, [query, initialCat]);
+
   const activeFilterCount = sel.cats.length + sel.hosts.length + sel.stock.length;
-  const goSearch = () => {
-    const trimmed = mobileQuery.trim();
-    trackEvent({
-      event_name: "catalog_search",
-      query: trimmed || undefined,
-      metadata: { has_query: Boolean(trimmed) },
+
+  const activeFilterChips = useMemo(() => {
+    const chips: Array<{ group: Group; id: string; label: string }> = [];
+    for (const id of sel.cats) {
+      const cat = CATEGORIES.find((c) => c.id === id);
+      if (cat) chips.push({ group: "cats", id, label: cat.label });
+    }
+    for (const id of sel.hosts) {
+      const host = HOSTS.find((h) => h.id === id);
+      if (host) chips.push({ group: "hosts", id, label: host.label });
+    }
+    for (const id of sel.stock) {
+      chips.push({
+        group: "stock",
+        id,
+        label: id === "in" ? t("inStock") : t("sourceOnRequest"),
+      });
+    }
+    return chips;
+  }, [sel.cats, sel.hosts, sel.stock, t]);
+
+  const clearFilters = () =>
+    setSel({
+      cats: [],
+      hosts: [],
+      stock: [],
     });
-    const catalogPath = withLocale(locale, "/catalog");
-    router.push(trimmed ? `${catalogPath}?q=${encodeURIComponent(trimmed)}` : catalogPath);
-  };
 
   useEffect(() => {
     if (!mounted.current) return;
@@ -157,21 +191,23 @@ export function CatalogView({
     mounted.current = true;
   }, []);
 
+  const seenPage = useRef<number | null>(null);
+  useEffect(() => {
+    if (seenPage.current === null) {
+      seenPage.current = currentPage;
+      return;
+    }
+    if (seenPage.current === currentPage) return;
+    seenPage.current = currentPage;
+    scrollToCatalogResults("smooth");
+  }, [currentPage]);
+
   return (
     <>
+      <CatalogTopbarMeasure />
       <CatalogHero hostFilter={sel.hosts} toggleHost={(id) => toggle("hosts", id)} />
       <div className="wrap">
         <div className="mobile-catalog-bar">
-          <button
-            className="btn btn-ghost"
-            type="button"
-            aria-expanded={searchOpen}
-            aria-controls="mobile-catalog-search"
-            onClick={() => setSearchOpen((open) => !open)}
-          >
-            <Ic.search />
-            {t("search")}
-          </button>
           <button
             className="btn btn-ghost"
             type="button"
@@ -193,24 +229,25 @@ export function CatalogView({
             <option value="category">{t("categoryAz")}</option>
           </select>
         </div>
-        <div
-          id="mobile-catalog-search"
-          className={"mobile-catalog-search" + (searchOpen ? " open" : "")}
-        >
-          <div className="searchbar">
-            <Ic.search />
-            <input
-              value={mobileQuery}
-              onChange={(e) => setMobileQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && goSearch()}
-              placeholder={t("pastePart")}
-              aria-label={t("search")}
-            />
+        {activeFilterChips.length > 0 && (
+          <div className="catalog-active-filters" aria-label={t("activeFilters")}>
+            <span className="label">{t("activeFilters")}</span>
+            {activeFilterChips.map((chip) => (
+              <button
+                key={`${chip.group}-${chip.id}`}
+                type="button"
+                className="catalog-filter-chip"
+                onClick={() => toggle(chip.group, chip.id)}
+              >
+                {chip.label}
+                <span aria-hidden="true">×</span>
+              </button>
+            ))}
+            <button type="button" className="catalog-clear-filters" onClick={clearFilters}>
+              {t("clearAll")}
+            </button>
           </div>
-          <button className="btn btn-primary" type="button" onClick={goSearch}>
-            {t("find")}
-          </button>
-        </div>
+        )}
         <div className="catalog">
           <aside id="catalog-filters" className={"filters" + (filtersOpen ? " open" : "")}>
             <div className="filter-group">
@@ -265,7 +302,7 @@ export function CatalogView({
             </div>
           </aside>
 
-          <div>
+          <div id="catalog-results">
             <div className="results-head">
               <div>
                 <h2 className="results-title">
@@ -295,22 +332,37 @@ export function CatalogView({
                 </div>
               ) : (
                 <div style={{ padding: "60px 0", textAlign: "center", color: "var(--muted)" }}>
-                  <p style={{ fontSize: 15 }}>No catalog results match the selected filters.</p>
-                  <p style={{ fontSize: 13 }}>Clear one filter or search by exact part number.</p>
+                  <p style={{ fontSize: 15 }}>{t("noFilterMatch")}</p>
+                  <p style={{ fontSize: 13 }}>{t("clearFiltersHint")}</p>
                 </div>
               )
             ) : (
               <>
-                <div className="grid density-regular catalog-card-grid">
-                  {results.map((p) => (
-                    <ProductCard key={p.id} part={p} />
+                <div className="grid density-regular catalog-card-grid" key={`cards-${currentPage}`}>
+                  {pagedResults.map((p, index) => (
+                    <ProductCard key={p.id} part={p} revealIndex={index} />
                   ))}
                 </div>
-                <div className="part-list">
-                  {results.map((p) => (
-                    <ProductListItem key={p.id} part={p} />
+                <div className="part-list" key={`${currentPage}-${isMobileCatalog ? "mobile" : "desktop"}`}>
+                  {pagedResults.map((p, index) => (
+                    <CatalogScrollReveal key={p.id} index={index} enabled={isMobileCatalog}>
+                      <ProductListItem part={p} />
+                    </CatalogScrollReveal>
                   ))}
                 </div>
+                <Pagination
+                  pathname={catalogPath}
+                  currentPage={currentPage}
+                  totalItems={results.length}
+                  pageSize={CATALOG_PAGE_SIZE}
+                  searchParams={paginationSearchParams}
+                  labels={{
+                    showing: (start, end, total) => t("paginationShowing", { start, end, total }),
+                    prev: t("paginationPrev"),
+                    next: t("paginationNext"),
+                    ariaLabel: t("paginationAria"),
+                  }}
+                />
               </>
             )}
           </div>

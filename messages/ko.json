@@ -105,6 +105,14 @@
     "sortCategory": "카테고리: A-Z",
     "noMatchTitle": "색인된 결과는 없지만 소싱은 가능합니다.",
     "noMatchText": "부품 번호를 보내주시면 중국 공급망에서 찾아보겠습니다.",
+    "noFilterMatch": "선택한 필터와 일치하는 카탈로그 결과가 없습니다.",
+    "clearFiltersHint": "필터를 해제하거나 정확한 부품 번호로 검색하세요.",
+    "activeFilters": "적용된 필터",
+    "clearAll": "전체 해제",
+    "paginationShowing": "{total}개 중 {start}-{end} 표시",
+    "paginationPrev": "이전",
+    "paginationNext": "다음",
+    "paginationAria": "카탈로그 페이지",
     "requestQuote": "견적 요청"
   },
   "Product": {

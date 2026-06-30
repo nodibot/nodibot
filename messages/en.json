@@ -105,6 +105,14 @@
     "sortCategory": "Category: A-Z",
     "noMatchTitle": "No indexed match - but we can still source it.",
     "noMatchText": "Submit the part number and our team will hunt it across our China supply network.",
+    "noFilterMatch": "No catalog results match the selected filters.",
+    "clearFiltersHint": "Clear one filter or search by exact part number.",
+    "activeFilters": "Active filters",
+    "clearAll": "Clear all",
+    "paginationShowing": "Showing {start}-{end} of {total}",
+    "paginationPrev": "Prev",
+    "paginationNext": "Next",
+    "paginationAria": "Catalog pagination",
     "requestQuote": "Request quote"
   },
   "Product": {

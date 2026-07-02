@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { ThemeBootstrap } from "@/app/_components/ThemeBootstrap";
 import { SITE_NAME, SITE_URL } from "@/app/_lib/seo";
@@ -85,14 +86,16 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       data-theme="light"
       className={`${hanken.variable} ${jetbrains.variable}`}
       suppressHydrationWarning

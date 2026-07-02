@@ -28,7 +28,7 @@ export function LandingHero() {
             <span className="pulse" /> {t("status")}
           </div>
           <h1>
-            {t("titlePrefix")}<em>{t("titleEmphasis")}</em>
+            {t("titlePrefix")}<em><br />{t("titleEmphasis")}</em>
           </h1>
           <p className="sub">{t("subtitle")}</p>
 

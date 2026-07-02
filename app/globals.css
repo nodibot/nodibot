@@ -77,6 +77,22 @@ body {
   letter-spacing: -0.006em;
 }
 
+/* Korean: keep words intact; break only at spaces */
+html:lang(ko) body {
+  word-break: keep-all;
+  line-break: strict;
+  overflow-wrap: normal;
+}
+
+html:lang(ko) :is(h1, h2, h3, h4, .lp-h2) {
+  text-wrap: pretty;
+}
+
+/* Part numbers and mono strings still need to wrap mid-token */
+html:lang(ko) :is(.card-pn, .mono, .pn) {
+  word-break: break-all;
+}
+
 ::selection { background: var(--accent-soft); }
 
 .mono { font-family: var(--font-mono); font-feature-settings: "zero" 1; }

@@ -14,8 +14,8 @@
   },
   "LandingHero": {
     "status": "Sourcing desk online · responding now",
-    "titlePrefix": "When the line is down, ",
-    "titleEmphasis": "every hour counts.",
+    "titlePrefix": "Hard-to-find automation parts ",
+    "titleEmphasis": "verified and quoted in hours.",
     "subtitle": "Tested secondary-market controllers, drives, pendants and reducers for discontinued automation - located, verified and quoted in hours, not weeks.",
     "searchLabel": "Drop the part number off your faulty unit",
     "searchPlaceholder": "e.g. 3HAC050363-001",
@@ -45,7 +45,7 @@
       "1": { "title": "Paste the part number", "desc": "Search the alphanumeric code off your faulty unit - exactly how you'd Google it." },
       "2": { "title": "Request a quote", "desc": "No cart, no payment. Flag line-down or spares, pick a channel, hit send." },
       "3": { "title": "We source it", "desc": "Our desk works a verified China supply network to locate and bench-test the part." },
-      "4": { "title": "Tested part ships", "desc": "Approve the quote and it ships DDP, with a 6-month functional warranty." }
+      "4": { "title": "Tested part ships", "desc": "Approve the quote and it ships with a 6-month functional warranty." }
     },
     "sourceEyebrow": "What we source",
     "sourceTitle": "Five tiers of high-demand automation parts.",

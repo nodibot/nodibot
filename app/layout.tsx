@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
+import { getLocale, getMessages } from "next-intl/server";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { ThemeBootstrap } from "@/app/_components/ThemeBootstrap";
 import { SITE_NAME, SITE_URL } from "@/app/_lib/seo";
-import enMessages from "@/messages/en.json";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -92,6 +91,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
     <html
@@ -102,7 +102,7 @@ export default async function RootLayout({
     >
       <body>
         <ThemeBootstrap />
-        <NextIntlClientProvider locale="en" messages={enMessages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>
         <GoogleAnalytics gaId={googleAnalyticsId} />

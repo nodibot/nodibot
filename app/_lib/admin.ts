@@ -164,11 +164,18 @@ export interface AnalyticsOverview {
   catalogSearches: number;
   inquiriesCreated: number;
   rfqPerClickRate: number;
+  uniqueVisitors: number;
+  emailClicks: number;
+  scrollDepthEvents: number;
+  eventsTruncated: boolean;
   topPartsByClick: Array<{ partPn: string; clicks: number }>;
   topConvertingParts: Array<{ partPn: string; clicks: number; rfqs: number; conversionRate: number }>;
   topQueries: Array<{ query: string; searches: number }>;
   topNoResultQueries: Array<{ query: string; searches: number }>;
   topCountries: Array<{ countryCode: string; count: number }>;
+  topPages: Array<{ pagePath: string; count: number }>;
+  topSurfaces: Array<{ surface: string; count: number }>;
+  scrollDepthBreakdown: Array<{ depth: number; count: number }>;
   eventBreakdown: Array<{ eventName: string; count: number }>;
   dailySeries: Array<{ day: string; total: number; clicks: number; searches: number; rfqs: number; whatsapp: number }>;
   recentEvents: Array<{
@@ -181,6 +188,7 @@ export interface AnalyticsOverview {
     countryCode: string | null;
     region: string | null;
     city: string | null;
+    metadataSummary: string | null;
   }>;
 }
 
@@ -199,6 +207,38 @@ function decodeMaybe(value: string | null): string | null {
     return value;
   }
 }
+
+function asMetadata(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as Record<string, unknown>;
+}
+
+export function summarizeEventMetadata(meta: Record<string, unknown> | null): string | null {
+  if (!meta || Object.keys(meta).length === 0) return null;
+
+  const bits: string[] = [];
+  if (typeof meta.surface === "string") bits.push(`surface: ${meta.surface}`);
+  if (typeof meta.depth === "number") bits.push(`depth: ${meta.depth}%`);
+  if (typeof meta.page === "number") bits.push(`catalog page: ${meta.page}`);
+  if (typeof meta.results === "number") bits.push(`results: ${meta.results}`);
+  if (typeof meta.sort === "string") bits.push(`sort: ${meta.sort}`);
+  if (Array.isArray(meta.cats) && meta.cats.length) bits.push(`cats: ${meta.cats.join(",")}`);
+  if (Array.isArray(meta.hosts) && meta.hosts.length) bits.push(`hosts: ${meta.hosts.join(",")}`);
+  if (Array.isArray(meta.stock) && meta.stock.length) bits.push(`stock: ${meta.stock.join(",")}`);
+  if (typeof meta.line_count === "number") bits.push(`lines: ${meta.line_count}`);
+  if (typeof meta.source === "string") bits.push(`source: ${meta.source}`);
+
+  if (bits.length > 0) return bits.join(" · ");
+
+  try {
+    const compact = JSON.stringify(meta);
+    return compact.length > 140 ? `${compact.slice(0, 137)}…` : compact;
+  } catch {
+    return null;
+  }
+}
+
+const ANALYTICS_ROW_LIMIT = 10_000;
 
 function filterRowsByEvent<T extends { event_name: string }>(
   rows: T[],
@@ -228,10 +268,12 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
   const [{ data: events, error: eventsError }, { count: inquiriesCount, error: inquiriesError }] = await Promise.all([
     supabase
       .from("website_events")
-      .select("event_name, part_pn, query, page_path, channel, country_code, region, city, created_at")
+      .select(
+        "event_name, part_pn, query, page_path, channel, country_code, region, city, ip_hash, metadata, created_at",
+      )
       .gte("created_at", since)
       .order("created_at", { ascending: false })
-      .limit(5000),
+      .limit(ANALYTICS_ROW_LIMIT),
     supabase
       .from("inquiries")
       .select("id", { head: true, count: "exact" })
@@ -257,11 +299,18 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
         catalogSearches: 0,
         inquiriesCreated: inquiriesCount ?? 0,
         rfqPerClickRate: 0,
+        uniqueVisitors: 0,
+        emailClicks: 0,
+        scrollDepthEvents: 0,
+        eventsTruncated: false,
         topPartsByClick: [],
         topConvertingParts: [],
         topQueries: [],
         topNoResultQueries: [],
         topCountries: [],
+        topPages: [],
+        topSurfaces: [],
+        scrollDepthBreakdown: [],
         eventBreakdown: [],
         dailySeries: [],
         recentEvents: [],
@@ -279,6 +328,9 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
   const queryCounts = new Map<string, number>();
   const noResultQueryCounts = new Map<string, number>();
   const countryCounts = new Map<string, number>();
+  const pageCounts = new Map<string, number>();
+  const surfaceCounts = new Map<string, number>();
+  const scrollDepthCounts = new Map<number, number>();
   const eventCounts = new Map<string, number>();
   const perDay = new Map<string, { total: number; clicks: number; searches: number; rfqs: number; whatsapp: number }>();
 
@@ -309,6 +361,17 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
       const cc = row.country_code.toUpperCase();
       countryCounts.set(cc, (countryCounts.get(cc) ?? 0) + 1);
     }
+    if (row.page_path) {
+      pageCounts.set(row.page_path, (pageCounts.get(row.page_path) ?? 0) + 1);
+    }
+
+    const meta = asMetadata(row.metadata);
+    if (meta && typeof meta.surface === "string") {
+      surfaceCounts.set(meta.surface, (surfaceCounts.get(meta.surface) ?? 0) + 1);
+    }
+    if (row.event_name === "catalog_scroll_depth" && meta && typeof meta.depth === "number") {
+      scrollDepthCounts.set(meta.depth, (scrollDepthCounts.get(meta.depth) ?? 0) + 1);
+    }
   }
 
   for (const row of allRows) {
@@ -322,22 +385,31 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
 
   const topPartsByClick = [...filteredPartClicks.entries()]
     .map(([partPn, clicks]) => ({ partPn, clicks }))
-    .sort((a, b) => b.clicks - a.clicks)
-    .slice(0, 10);
+    .sort((a, b) => b.clicks - a.clicks);
 
   const topQueries = [...queryCounts.entries()]
     .map(([query, searches]) => ({ query, searches }))
-    .sort((a, b) => b.searches - a.searches)
-    .slice(0, 10);
+    .sort((a, b) => b.searches - a.searches);
 
   const topNoResultQueries = [...noResultQueryCounts.entries()]
     .map(([query, searches]) => ({ query, searches }))
-    .sort((a, b) => b.searches - a.searches)
-    .slice(0, 10);
+    .sort((a, b) => b.searches - a.searches);
 
   const topCountries = [...countryCounts.entries()]
     .map(([countryCode, count]) => ({ countryCode, count }))
     .sort((a, b) => b.count - a.count);
+
+  const topPages = [...pageCounts.entries()]
+    .map(([pagePath, count]) => ({ pagePath, count }))
+    .sort((a, b) => b.count - a.count);
+
+  const topSurfaces = [...surfaceCounts.entries()]
+    .map(([surface, count]) => ({ surface, count }))
+    .sort((a, b) => b.count - a.count);
+
+  const scrollDepthBreakdown = [...scrollDepthCounts.entries()]
+    .map(([depth, count]) => ({ depth, count }))
+    .sort((a, b) => a.depth - b.depth);
 
   const topConvertingParts = [...allPartClicks.entries()]
     .map(([partPn, clicks]) => {
@@ -349,8 +421,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
       b.conversionRate - a.conversionRate ||
       b.rfqs - a.rfqs ||
       b.clicks - a.clicks,
-    )
-    .slice(0, 10);
+    );
 
   const eventBreakdown = [...eventCounts.entries()]
     .map(([eventName, count]) => ({ eventName, count }))
@@ -361,7 +432,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     .sort((a, b) => (a.day < b.day ? -1 : 1))
     .slice(-14);
 
-  const recentEvents = rows.slice(0, 30).map((row) => ({
+  const recentEvents = rows.slice(0, 200).map((row) => ({
     eventName: row.event_name,
     createdAt: row.created_at,
     partPn: row.part_pn,
@@ -371,12 +442,14 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     countryCode: decodeMaybe(row.country_code),
     region: decodeMaybe(row.region),
     city: decodeMaybe(row.city),
+    metadataSummary: summarizeEventMetadata(asMetadata(row.metadata)),
   }));
 
   const productClicks = allRows.filter((r) => r.event_name === "catalog_item_click").length;
   const rfqSubmittedEvents = allRows.filter(
     (r) => r.event_name === "rfq_submitted" || r.event_name === "bulk_rfq_submitted",
   ).length;
+  const uniqueVisitors = new Set(allRows.map((r) => r.ip_hash).filter(Boolean)).size;
 
   return {
     sinceIso: since,
@@ -385,17 +458,24 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     totalEvents: rows.length,
     productClicks: rows.filter((r) => r.event_name === "catalog_item_click").length,
     whatsappClicks: rows.filter((r) => r.event_name === "whatsapp_click").length,
+    emailClicks: rows.filter((r) => r.event_name === "email_click").length,
+    scrollDepthEvents: rows.filter((r) => r.event_name === "catalog_scroll_depth").length,
     rfqSubmittedEvents: rows.filter((r) => r.event_name === "rfq_submitted" || r.event_name === "bulk_rfq_submitted")
       .length,
     catalogSearches: rows.filter((r) => r.event_name === "catalog_search" || r.event_name === "catalog_no_results")
       .length,
     inquiriesCreated: inquiriesCount ?? 0,
     rfqPerClickRate: productClicks > 0 ? rfqSubmittedEvents / productClicks : 0,
+    uniqueVisitors,
+    eventsTruncated: allRows.length >= ANALYTICS_ROW_LIMIT,
     topPartsByClick,
     topConvertingParts,
     topQueries,
     topNoResultQueries,
     topCountries,
+    topPages,
+    topSurfaces,
+    scrollDepthBreakdown,
     eventBreakdown,
     dailySeries,
     recentEvents,

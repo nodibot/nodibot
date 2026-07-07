@@ -6,6 +6,7 @@ export type AnalyticsEventName =
   | "catalog_no_results"
   | "catalog_filter_change"
   | "catalog_sort_change"
+  | "catalog_scroll_depth"
   | "rfq_submitted"
   | "bulk_rfq_submitted"
   | "whatsapp_click"

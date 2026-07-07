@@ -8,6 +8,7 @@ import { NoMatchRfqForm } from "@/app/_components/rfq/NoMatchRfqForm";
 import { withLocale } from "@/app/_lib/locale-path";
 import { ProductCard, ProductListItem } from "./ProductCard";
 import { CatalogScrollReveal, useMobileCatalogLayout } from "./CatalogScrollReveal";
+import { CatalogScrollDepthTracker } from "./CatalogScrollDepth";
 import { CatalogTopbarMeasure, scrollToCatalogResults } from "./CatalogTopbarMeasure";
 import { Pagination, paginateItems, parsePageParam, clampPageForTotal } from "@/app/_components/Pagination";
 import { CATEGORIES, HOSTS } from "@/app/_lib/taxonomy";
@@ -124,6 +125,8 @@ export function CatalogView({
     return params;
   }, [query, initialCat]);
 
+  const scrollDepthViewKey = `${currentPage}|${query}|${sel.cats.join(",")}|${sel.hosts.join(",")}|${sel.stock.join(",")}`;
+
   const activeFilterCount = sel.cats.length + sel.hosts.length + sel.stock.length;
 
   const activeFilterChips = useMemo(() => {
@@ -204,6 +207,12 @@ export function CatalogView({
 
   return (
     <>
+      <CatalogScrollDepthTracker
+        viewKey={scrollDepthViewKey}
+        query={query}
+        currentPage={currentPage}
+        resultsCount={results.length}
+      />
       <CatalogTopbarMeasure />
       <CatalogHero hostFilter={sel.hosts} toggleHost={(id) => toggle("hosts", id)} />
       <div className="wrap">

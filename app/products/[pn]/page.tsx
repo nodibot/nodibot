@@ -192,7 +192,7 @@ export default async function ProductPage({
             <div style={{ marginTop: 34 }}>
               <h3 className="section-h">{t("specifications")}</h3>
               <Specs part={part} />
-              <Compat part={part} />
+              {/* <Compat part={part} /> */}
 
               {related.length > 0 && (
                 <>
@@ -236,12 +236,12 @@ export default async function ProductPage({
                 justifyContent: "space-between",
               }}
             >
-              <div className="resp-pill">
+              {/* <div className="resp-pill">
                 <span className="pulse" /> {t("engineersViewed", { count: part.views.toLocaleString() })}
-              </div>
-              <div style={{ fontSize: 12.5, color: "var(--muted)" }}>
+              </div> */}
+              {/* <div style={{ fontSize: 12.5, color: "var(--muted)" }}>
                 {t("leadTime")} · <strong style={{ color: "var(--ink)" }}>{part.lead}</strong>
-              </div>
+              </div> */}
             </div>
 
             <RfqForm part={part} />

@@ -217,9 +217,9 @@ export function RfqForm({ part }: { part: Part }) {
           </div>
         </div>
 
-        <button className="rfq-details-toggle" type="button" onClick={() => setShowDetails((open) => !open)}>
+        {/* <button className="rfq-details-toggle" type="button" onClick={() => setShowDetails((open) => !open)}>
           {showDetails ? t("hideDetails") : t("showDetails")}
-        </button>
+        </button> */}
 
         {showDetails && (
           <div className="rfq-details">

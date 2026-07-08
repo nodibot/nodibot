@@ -95,12 +95,12 @@ export function Specs({ part }: { part: Part }) {
     ...(part.series ? [[t("specSeries"), part.series, true] as [string, string, boolean]] : []),
     ...(part.equipmentType ? [[t("specEquipment"), part.equipmentType, false] as [string, string, boolean]] : []),
     [t("specCondition"), COND[part.cond] ?? part.cond, false],
-    [t("specLifecycle"), part.life, false],
-    ...(part.controllerGeneration
-      ? [[t("specGeneration"), part.controllerGeneration, false] as [string, string, boolean]]
-      : []),
+    // [t("specLifecycle"), part.life, false],
+    // ...(part.controllerGeneration
+    //   ? [[t("specGeneration"), part.controllerGeneration, false] as [string, string, boolean]]
+    //   : []),
     [t("specLeadTime"), part.lead, false],
-    [t("specWarranty"), t("warrantyValue"), false],
+    // [t("specWarranty"), t("warrantyValue"), false],
   ];
   return (
     <div className="specs">

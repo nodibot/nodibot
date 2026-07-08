@@ -13,7 +13,7 @@ function EventLabel({ eventName }: { eventName: string }) {
     catalog_search: "Catalog search",
     catalog_filter_change: "Catalog filter change",
     catalog_sort_change: "Catalog sort change",
-    catalog_scroll_depth: "Catalog scroll depth",
+    catalog_scroll_depth: "Catalog scroll",
     catalog_no_results: "No-result search",
     rfq_submitted: "RFQ submitted",
     bulk_rfq_submitted: "Bulk RFQ submitted",
@@ -188,8 +188,8 @@ export default async function TrafficAnalyticsPage({
             <div className="l">Catalog searches</div>
           </div>
           <div className="admin-stat">
-            <div className="n">{analytics.scrollDepthEvents.toLocaleString()}</div>
-            <div className="l">Scroll depth hits</div>
+            <div className="n">{analytics.catalogScrollEvents.toLocaleString()}</div>
+            <div className="l">Catalog scrolls</div>
           </div>
           <div className="admin-stat">
             <div className="n">{analytics.whatsappClicks.toLocaleString()}</div>
@@ -423,33 +423,6 @@ export default async function TrafficAnalyticsPage({
           />
         </section>
 
-        {analytics.scrollDepthBreakdown.length > 0 && (
-          <section className="admin-table-section">
-            <h2 className="admin-section-title">Catalog scroll depth</h2>
-            <p className="hint" style={{ marginBottom: 12 }}>
-              How far users scrolled on the catalog (25/50/75/100% milestones, once per view).
-            </p>
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Depth</th>
-                    <th>Events</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {analytics.scrollDepthBreakdown.map((row) => (
-                    <tr key={row.depth}>
-                      <td>{row.depth}%</td>
-                      <td>{row.count}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
         {/* Top countries */}
         <section className="admin-table-section">
           <h2 className="admin-section-title">Top countries</h2>
@@ -577,7 +550,7 @@ export default async function TrafficAnalyticsPage({
         <section className="admin-table-section">
           <h2 className="admin-section-title">Recent events</h2>
           <p className="hint" style={{ marginBottom: 12 }}>
-            Latest 200 events with location, path, and parsed metadata (filters, scroll depth, click surface, etc.).
+            Latest 200 events with location, path, and parsed metadata (filters, scroll, click surface, etc.).
           </p>
           <div className="admin-table-wrap">
             <table className="admin-table">

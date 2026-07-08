@@ -92,7 +92,7 @@ function eventLabel(eventName: string): string {
     catalog_no_results: "No-result search",
     catalog_filter_change: "Catalog filter change",
     catalog_sort_change: "Catalog sort change",
-    catalog_scroll_depth: "Catalog scroll depth",
+    catalog_scroll_depth: "Catalog scroll",
     rfq_submitted: "RFQ submitted",
     bulk_rfq_submitted: "Bulk RFQ submitted",
     whatsapp_click: "WhatsApp click",

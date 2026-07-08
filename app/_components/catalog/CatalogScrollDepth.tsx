@@ -3,9 +3,8 @@
 import { useEffect, useRef } from "react";
 import { trackEvent } from "@/app/_lib/analytics-client";
 import {
-  computeScrollDepth,
-  newlyReachedMilestones,
-  type ScrollDepthMilestone,
+  isScrollBeyondBaseline,
+  SCROLL_SETTLE_MS,
 } from "@/app/_lib/catalog-scroll-depth";
 
 export function CatalogScrollDepthTracker({
@@ -19,44 +18,63 @@ export function CatalogScrollDepthTracker({
   currentPage: number;
   resultsCount: number;
 }) {
-  const firedRef = useRef<Set<ScrollDepthMilestone>>(new Set());
+  const firedRef = useRef(false);
   const tickingRef = useRef(false);
+  const prevViewKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    firedRef.current = new Set();
+    firedRef.current = false;
+    let baseline = window.scrollY;
+    let armed = false;
 
-    const checkDepth = () => {
+    const arm = () => {
+      baseline = window.scrollY;
+      armed = true;
+    };
+
+    const isFirstView = prevViewKeyRef.current === null;
+    prevViewKeyRef.current = viewKey;
+
+    let settleTimer: number | undefined;
+    let onScrollEnd: (() => void) | undefined;
+
+    if (isFirstView) {
+      arm();
+    } else {
+      // Pagination/filter changes may call scrollToCatalogResults — wait until that settles.
+      onScrollEnd = () => arm();
+      window.addEventListener("scrollend", onScrollEnd, { once: true });
+      settleTimer = window.setTimeout(arm, SCROLL_SETTLE_MS);
+    }
+
+    const maybeTrackScroll = () => {
       tickingRef.current = false;
-      const depth = computeScrollDepth(
-        window.scrollY,
-        window.innerHeight,
-        document.documentElement.scrollHeight,
-      );
-      const pending = newlyReachedMilestones(depth, firedRef.current);
-      for (const milestone of pending) {
-        firedRef.current.add(milestone);
-        trackEvent({
-          event_name: "catalog_scroll_depth",
-          query: query || undefined,
-          metadata: {
-            depth: milestone,
-            page: currentPage,
-            results: resultsCount,
-          },
-        });
-      }
+      if (!armed || firedRef.current || !isScrollBeyondBaseline(window.scrollY, baseline)) return;
+
+      firedRef.current = true;
+      trackEvent({
+        event_name: "catalog_scroll_depth",
+        query: query || undefined,
+        metadata: {
+          page: currentPage,
+          results: resultsCount,
+        },
+      });
     };
 
     const onScroll = () => {
-      if (tickingRef.current) return;
+      if (firedRef.current || tickingRef.current) return;
       tickingRef.current = true;
-      requestAnimationFrame(checkDepth);
+      requestAnimationFrame(maybeTrackScroll);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    requestAnimationFrame(checkDepth);
 
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      if (settleTimer !== undefined) window.clearTimeout(settleTimer);
+      if (onScrollEnd) window.removeEventListener("scrollend", onScrollEnd);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, [viewKey, query, currentPage, resultsCount]);
 
   return null;

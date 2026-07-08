@@ -166,7 +166,7 @@ export interface AnalyticsOverview {
   rfqPerClickRate: number;
   uniqueVisitors: number;
   emailClicks: number;
-  scrollDepthEvents: number;
+  catalogScrollEvents: number;
   eventsTruncated: boolean;
   topPartsByClick: Array<{ partPn: string; clicks: number }>;
   topConvertingParts: Array<{ partPn: string; clicks: number; rfqs: number; conversionRate: number }>;
@@ -175,7 +175,6 @@ export interface AnalyticsOverview {
   topCountries: Array<{ countryCode: string; count: number }>;
   topPages: Array<{ pagePath: string; count: number }>;
   topSurfaces: Array<{ surface: string; count: number }>;
-  scrollDepthBreakdown: Array<{ depth: number; count: number }>;
   eventBreakdown: Array<{ eventName: string; count: number }>;
   dailySeries: Array<{ day: string; total: number; clicks: number; searches: number; rfqs: number; whatsapp: number }>;
   recentEvents: Array<{
@@ -301,7 +300,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
         rfqPerClickRate: 0,
         uniqueVisitors: 0,
         emailClicks: 0,
-        scrollDepthEvents: 0,
+        catalogScrollEvents: 0,
         eventsTruncated: false,
         topPartsByClick: [],
         topConvertingParts: [],
@@ -310,7 +309,6 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
         topCountries: [],
         topPages: [],
         topSurfaces: [],
-        scrollDepthBreakdown: [],
         eventBreakdown: [],
         dailySeries: [],
         recentEvents: [],
@@ -330,7 +328,6 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
   const countryCounts = new Map<string, number>();
   const pageCounts = new Map<string, number>();
   const surfaceCounts = new Map<string, number>();
-  const scrollDepthCounts = new Map<number, number>();
   const eventCounts = new Map<string, number>();
   const perDay = new Map<string, { total: number; clicks: number; searches: number; rfqs: number; whatsapp: number }>();
 
@@ -369,9 +366,6 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     if (meta && typeof meta.surface === "string") {
       surfaceCounts.set(meta.surface, (surfaceCounts.get(meta.surface) ?? 0) + 1);
     }
-    if (row.event_name === "catalog_scroll_depth" && meta && typeof meta.depth === "number") {
-      scrollDepthCounts.set(meta.depth, (scrollDepthCounts.get(meta.depth) ?? 0) + 1);
-    }
   }
 
   for (const row of allRows) {
@@ -406,10 +400,6 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
   const topSurfaces = [...surfaceCounts.entries()]
     .map(([surface, count]) => ({ surface, count }))
     .sort((a, b) => b.count - a.count);
-
-  const scrollDepthBreakdown = [...scrollDepthCounts.entries()]
-    .map(([depth, count]) => ({ depth, count }))
-    .sort((a, b) => a.depth - b.depth);
 
   const topConvertingParts = [...allPartClicks.entries()]
     .map(([partPn, clicks]) => {
@@ -459,7 +449,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     productClicks: rows.filter((r) => r.event_name === "catalog_item_click").length,
     whatsappClicks: rows.filter((r) => r.event_name === "whatsapp_click").length,
     emailClicks: rows.filter((r) => r.event_name === "email_click").length,
-    scrollDepthEvents: rows.filter((r) => r.event_name === "catalog_scroll_depth").length,
+    catalogScrollEvents: rows.filter((r) => r.event_name === "catalog_scroll_depth").length,
     rfqSubmittedEvents: rows.filter((r) => r.event_name === "rfq_submitted" || r.event_name === "bulk_rfq_submitted")
       .length,
     catalogSearches: rows.filter((r) => r.event_name === "catalog_search" || r.event_name === "catalog_no_results")
@@ -475,7 +465,6 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     topCountries,
     topPages,
     topSurfaces,
-    scrollDepthBreakdown,
     eventBreakdown,
     dailySeries,
     recentEvents,

@@ -1,22 +1,9 @@
-export const SCROLL_DEPTH_MILESTONES = [25, 50, 75, 100] as const;
+/** Minimum vertical scroll (px) before counting as a scroll interaction. */
+export const SCROLL_PX_THRESHOLD = 48;
 
-export type ScrollDepthMilestone = (typeof SCROLL_DEPTH_MILESTONES)[number];
+/** How long to wait for pagination scroll-to-results before arming the tracker. */
+export const SCROLL_SETTLE_MS = 700;
 
-/** Percent of page scrolled (0–100), based on viewport bottom vs document height. */
-export function computeScrollDepth(
-  scrollY: number,
-  innerHeight: number,
-  scrollHeight: number,
-): number {
-  if (scrollHeight <= 0) return 0;
-  const raw = ((scrollY + innerHeight) / scrollHeight) * 100;
-  return Math.min(100, Math.max(0, Math.round(raw)));
-}
-
-/** Milestones at or below the current depth that have not been fired yet. */
-export function newlyReachedMilestones(
-  depth: number,
-  fired: ReadonlySet<number>,
-): ScrollDepthMilestone[] {
-  return SCROLL_DEPTH_MILESTONES.filter((m) => depth >= m && !fired.has(m));
+export function isScrollBeyondBaseline(scrollY: number, baseline: number): boolean {
+  return Math.abs(scrollY - baseline) >= SCROLL_PX_THRESHOLD;
 }

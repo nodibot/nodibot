@@ -5,6 +5,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { ThemeBootstrap } from "@/app/_components/ThemeBootstrap";
 import { SITE_NAME, SITE_URL } from "@/app/_lib/seo";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -107,6 +108,7 @@ export default async function RootLayout({
         </NextIntlClientProvider>
         <GoogleAnalytics gaId={googleAnalyticsId} />
       </body>
+      <Analytics />
     </html>
   );
 }

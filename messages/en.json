@@ -3,6 +3,8 @@
     "catalog": "Catalog",
     "howItWorks": "How it works",
     "categories": "Categories",
+    "brands": "Brands",
+    "inventory": "Inventory",
     "sellParts": "Sell parts",
     "searchPlaceholder": "Paste a part number - e.g. 3HAC050363-001, A06B-6114-H206...",
     "searchAria": "Search parts",
@@ -35,6 +37,54 @@
     "compatChecked": "Compatibility checked",
     "quoteReady": "Quote ready",
     "sourcesSave": "3 sources · save up to 81%"
+  },
+  "LandingV2": {
+    "heroTitle": "Find Industrial Automation Parts Instantly.",
+    "heroSubtitle": "Authentic surplus. Tested. Shipped globally via DHL Express.",
+    "searchPlaceholder": "Enter Part Number (e.g., A06B-6117-H207)",
+    "searchAria": "Search by part number",
+    "searchButton": "Search Inventory",
+    "panicCta": "Line Down? Text an Engineer Now for Emergency Sourcing.",
+    "panicWaMessage": "Line down — need emergency sourcing help.",
+    "trustAria": "Why buyers trust nodibot",
+    "trust": {
+      "shipping": {
+        "title": "DHL Express Shipping",
+        "desc": "Global delivery in 2–4 days."
+      },
+      "tested": {
+        "title": "Bench-Tested",
+        "desc": "All parts verified by our HK QA team."
+      },
+      "warranty": {
+        "title": "Warranty Included",
+        "desc": "30-day to 12-month coverage."
+      },
+      "support": {
+        "title": "Real Human Support",
+        "desc": "24/7 WhatsApp assistance."
+      }
+    },
+    "brandsTitle": "Shop by brand",
+    "brandsLead": "Jump straight into inventory for the platforms you run.",
+    "categoriesTitle": "Shop by category",
+    "categoriesLead": "Browse the component types plants request most often.",
+    "inventoryTitle": "Browse inventory",
+    "inventoryLead": "Filter by brand or category above, or search by exact part number.",
+    "categories": {
+      "drives": "Servo Drives",
+      "plcs": "PLCs",
+      "hmi": "HMIs / Panels",
+      "pendants": "Robot Pendants"
+    },
+    "readyTitle": "Ready to ship",
+    "readyLead": "High-demand parts currently marked in stock — physical inventory, not vaporware.",
+    "readyBrowseAll": "More",
+    "readyEmpty": "No in-stock parts to show right now. Search the catalog or chat our desk.",
+    "bomTitle": "Have a long list of parts? Don't search one by one.",
+    "bomLead": "Procurement lists and spare BOMs get a custom bulk quote — usually within 2 hours.",
+    "bomDropLabel": "Drop your Excel/CSV Bill of Materials here.",
+    "bomCta": "Upload List & Get a Custom Bulk Quote in 2 Hours."
   },
   "LandingSections": {
     "hostStrip": "Parts salvaged from & verified to fit every major platform",

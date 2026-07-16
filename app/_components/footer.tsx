@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import { LanguageSelect } from "./LanguageSelect";
 import { LogoMark } from "./logo";
 import { withLocale } from "@/app/_lib/locale-path";
 
@@ -16,7 +17,10 @@ export function Footer() {
             nod<span className="dot">i</span>bot
           </div>
         </Link>
-        <div className="muted">{t("tagline")}</div>
+        <div className="footer-meta">
+          <div className="muted">{t("tagline")}</div>
+          <LanguageSelect />
+        </div>
       </div>
     </footer>
   );

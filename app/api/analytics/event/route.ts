@@ -3,6 +3,14 @@ import { createHash } from "node:crypto";
 import { getSupabase } from "@/app/_lib/supabase";
 
 type EventName =
+  | "session_entry"
+  | "homepage_view"
+  | "homepage_search"
+  | "homepage_brand_click"
+  | "homepage_category_click"
+  | "homepage_ready_product_click"
+  | "homepage_bulk_rfq_open"
+  | "catalog_view"
   | "catalog_item_click"
   | "catalog_search"
   | "catalog_no_results"
@@ -24,6 +32,14 @@ interface EventBody {
 }
 
 const ALLOWED: EventName[] = [
+  "session_entry",
+  "homepage_view",
+  "homepage_search",
+  "homepage_brand_click",
+  "homepage_category_click",
+  "homepage_ready_product_click",
+  "homepage_bulk_rfq_open",
+  "catalog_view",
   "catalog_item_click",
   "catalog_search",
   "catalog_no_results",

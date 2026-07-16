@@ -9,6 +9,14 @@ function pct(value: number): string {
 
 function EventLabel({ eventName }: { eventName: string }) {
   const map: Record<string, string> = {
+    session_entry: "Session entry",
+    homepage_view: "Homepage view",
+    homepage_search: "Homepage search",
+    homepage_brand_click: "Homepage brand click",
+    homepage_category_click: "Homepage category click",
+    homepage_ready_product_click: "Homepage product click",
+    homepage_bulk_rfq_open: "Homepage bulk RFQ open",
+    catalog_view: "Catalog view",
     catalog_item_click: "Catalog item click",
     catalog_search: "Catalog search",
     catalog_filter_change: "Catalog filter change",
@@ -172,6 +180,26 @@ export default async function TrafficAnalyticsPage({
         {/* Stats */}
         <div className="admin-stats">
           <div className="admin-stat">
+            <div className="n">{analytics.homepageViews.toLocaleString()}</div>
+            <div className="l">Homepage views</div>
+          </div>
+          <div className="admin-stat">
+            <div className="n">{analytics.homepageVisitors.toLocaleString()}</div>
+            <div className="l">Homepage visitors (est.)</div>
+          </div>
+          <div className="admin-stat">
+            <div className="n">{analytics.homepageActions.toLocaleString()}</div>
+            <div className="l">Homepage-qualified actions</div>
+          </div>
+          <div className="admin-stat">
+            <div className="n">{analytics.homepageCatalogViews.toLocaleString()}</div>
+            <div className="l">Catalog views from homepage entries</div>
+          </div>
+          <div className="admin-stat">
+            <div className="n">{pct(analytics.homepageQualifiedActionRate)}</div>
+            <div className="l">Homepage qualified action rate</div>
+          </div>
+          <div className="admin-stat">
             <div className="n">{analytics.totalEvents.toLocaleString()}</div>
             <div className="l">Tracked events</div>
           </div>
@@ -212,6 +240,41 @@ export default async function TrafficAnalyticsPage({
             <div className="l">RFQ per click rate</div>
           </div>
         </div>
+
+        <section className="admin-table-section">
+          <h2 className="admin-section-title">Entry-page conversion</h2>
+          <p className="hint" style={{ marginBottom: 12 }}>
+            Estimated unique session entrants who later searched, viewed a product, opened WhatsApp, or submitted an RFQ.
+          </p>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Entry page</th>
+                  <th>Visitors</th>
+                  <th>Qualified visitors</th>
+                  <th>Qualified action rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analytics.entryPageBreakdown.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="dim">No entry-page data yet.</td>
+                  </tr>
+                ) : (
+                  analytics.entryPageBreakdown.map((row) => (
+                    <tr key={row.entryPage}>
+                      <td className="mono">{row.entryPage}</td>
+                      <td>{row.visitors}</td>
+                      <td>{row.qualifiedVisitors}</td>
+                      <td>{pct(row.qualifiedActionRate)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         {/* Event breakdown */}
         <section className="admin-table-section">

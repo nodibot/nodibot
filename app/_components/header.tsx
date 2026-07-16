@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { Ic } from "./icons";
 import { LogoMark } from "./logo";
-import { replaceLocale, withLocale } from "@/app/_lib/locale-path";
+import { withLocale } from "@/app/_lib/locale-path";
 
 const THEME_KEY = "nodibot-theme";
 
@@ -59,44 +59,22 @@ function ThemeToggle({ dark, toggle }: { dark: boolean; toggle: () => void }) {
   );
 }
 
-function LanguageSelect() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const locale = useLocale();
-  const t = useTranslations("Header");
-
-  const switchLocale = (nextLocale: string) => {
-    const query = searchParams.toString();
-    const nextPath = replaceLocale(pathname, nextLocale);
-    router.push(query ? `${nextPath}?${query}` : nextPath);
-  };
-
-  return (
-    <select
-      className="locale-select"
-      aria-label={t("language")}
-      value={locale}
-      onChange={(event) => switchLocale(event.target.value)}
-    >
-      <option value="en">EN</option>
-      <option value="ko">KO</option>
-    </select>
-  );
-}
-
 export function Header({
   variant = "app",
   initialQuery = "",
+  showTheme,
 }: {
-  variant?: "app" | "landing";
+  variant?: "app" | "landing" | "landing-v2";
   initialQuery?: string;
+  /** Defaults: on for classic landing only; off for catalog + landing-v2. */
+  showTheme?: boolean;
 }) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("Header");
   const [dark, toggle] = useDarkMode();
   const [query, setQuery] = useState(initialQuery);
+  const themeVisible = showTheme ?? variant === "landing";
 
   const goSearch = (q: string) => {
     const trimmed = q.trim();
@@ -120,6 +98,21 @@ export function Header({
               aria-label={t("searchAria")}
             />
           </div>
+        ) : variant === "landing-v2" ? (
+          <>
+            <nav className="topbar-actions" style={{ marginLeft: 18, gap: 2 }}>
+              <a className="topbar-link" href="#ready-to-ship">
+                {t("inventory")}
+              </a>
+              <a className="topbar-link" href="#brands">
+                {t("brands")}
+              </a>
+              <a className="topbar-link" href="#how">
+                {t("howItWorks")}
+              </a>
+            </nav>
+            <div className="spacer" />
+          </>
         ) : (
           <>
             <nav className="topbar-actions" style={{ marginLeft: 18, gap: 2 }}>
@@ -137,16 +130,16 @@ export function Header({
           </>
         )}
 
-        <div className="topbar-actions">
-          {variant === "app" && (
-            <Link className="topbar-link" href={withLocale(locale, "/catalog")}>
-              {t("sellParts")}
-            </Link>
-          )}
-          <LanguageSelect />
-          <span className="divider-v" />
-          <ThemeToggle dark={dark} toggle={toggle} />
-        </div>
+        {(variant === "app" || themeVisible) && (
+          <div className="topbar-actions">
+            {variant === "app" && (
+              <Link className="topbar-link" href={withLocale(locale, "/catalog")}>
+                {t("sellParts")}
+              </Link>
+            )}
+            {themeVisible && <ThemeToggle dark={dark} toggle={toggle} />}
+          </div>
+        )}
       </div>
     </header>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { PartImage, StockBadge, LifeBadge } from "@/app/_components/badges";
+import { PartImage } from "@/app/_components/badges";
 import { Ic } from "@/app/_components/icons";
 import { trackEvent } from "@/app/_lib/analytics-client";
 import { withLocale } from "@/app/_lib/locale-path";
@@ -33,10 +33,6 @@ export function ProductCard({ part, revealIndex }: { part: Part; revealIndex?: n
         <div className="card-brand">{part.brand}</div>
         <div className="card-pn mono">{part.pn}</div>
         <p className="card-name">{part.name}</p>
-        <div className="card-badges">
-          <StockBadge part={part} />
-          <LifeBadge life={part.life} />
-        </div>
         <div className="card-meta">
           <div className="card-price quote">
             <span className="cur">{part.availabilityLabel ?? "RFQ"}</span>
@@ -73,10 +69,6 @@ export function ProductListItem({ part }: { part: Part }) {
         <div className="part-row-kicker">{part.brand}</div>
         <div className="part-row-pn mono">{part.pn}</div>
         <p className="part-row-name">{part.name}</p>
-        <div className="part-row-badges">
-          <StockBadge part={part} />
-          <LifeBadge life={part.life} />
-        </div>
       </div>
       <div className="part-row-side">
         <div className="part-row-price">

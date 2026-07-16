@@ -73,11 +73,13 @@ export function CatalogView({
   parts,
   initialQuery = "",
   initialCat = null,
+  initialHost = null,
   searchParams = {},
 }: {
   parts: Part[];
   initialQuery?: string;
   initialCat?: string | null;
+  initialHost?: string | null;
   searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const locale = useLocale();
@@ -85,7 +87,7 @@ export function CatalogView({
   const isMobileCatalog = useMobileCatalogLayout();
   const [sel, setSel] = useState<Record<Group, string[]>>({
     cats: initialCat ? [initialCat] : [],
-    hosts: [],
+    hosts: initialHost ? [initialHost] : [],
     stock: [],
   });
   const [sort, setSort] = useState<SortKey>("demand");
@@ -122,8 +124,9 @@ export function CatalogView({
     const params: Record<string, string> = {};
     if (query) params.q = query;
     if (initialCat) params.cat = initialCat;
+    if (initialHost) params.host = initialHost;
     return params;
-  }, [query, initialCat]);
+  }, [query, initialCat, initialHost]);
 
   const scrollDepthViewKey = `${currentPage}|${query}|${sel.cats.join(",")}|${sel.hosts.join(",")}|${sel.stock.join(",")}`;
 
@@ -193,6 +196,16 @@ export function CatalogView({
   useEffect(() => {
     mounted.current = true;
   }, []);
+
+  useEffect(() => {
+    trackEvent({
+      event_name: "catalog_view",
+      query: query || undefined,
+      metadata: {
+        page: currentPage,
+      },
+    });
+  }, [currentPage, query]);
 
   const seenPage = useRef<number | null>(null);
   useEffect(() => {

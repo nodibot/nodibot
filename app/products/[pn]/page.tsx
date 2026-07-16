@@ -15,10 +15,21 @@ import { withLocale } from "@/app/_lib/locale-path";
 import { getActiveParts, getPartByPn } from "@/app/_lib/parts";
 import { absoluteUrl, SITE_NAME } from "@/app/_lib/seo";
 import { CAT_LABEL, COND } from "@/app/_lib/taxonomy";
+import {
+  getBrandCollectionForPart,
+  getCategoryCollectionForPart,
+  type SeoLocale,
+} from "@/app/_lib/seo-collections";
 import type { Part } from "@/app/_lib/types";
 
 function productDescription(part: Part) {
-  return `${part.brand} ${part.pn}: ${part.name}. ${part.life}. Request sourcing, testing status, lead time, and availability from nodibot.`;
+  const category = part.categoryL2 ?? CAT_LABEL[part.cat] ?? part.cat;
+  const series = part.series ? ` ${part.series} series.` : "";
+  return `${part.pn} is a ${part.brand} ${part.name} for industrial automation applications. ${category}; ${COND[part.cond] ?? part.cond}; ${part.life}.${series} Request exact-unit compatibility, testing status, lead time, and availability from nodibot.`;
+}
+
+function safeJsonLd(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
 export async function generateMetadata({
@@ -31,15 +42,24 @@ export async function generateMetadata({
   if (!part) {
     return { title: "Part not found" };
   }
-  const title = `Buy ${part.brand} ${part.pn} | ${part.name}`;
+  const locale = (await getLocale()) as SeoLocale;
+  const title = `${part.pn} ${part.brand} ${part.name} | Tested automation part`;
   const description = productDescription(part);
-  const url = absoluteUrl(`/products/${encodeURIComponent(part.pn)}`);
+  const path = `/products/${encodeURIComponent(part.pn)}`;
+  const localizedPath = withLocale(locale, path);
+  const url = absoluteUrl(localizedPath);
   const images = part.imageStatus === "approved" && part.imageUrl ? [part.imageUrl] : [];
 
   return {
     title,
     description,
-    alternates: { canonical: `/products/${encodeURIComponent(part.pn)}` },
+    alternates: {
+      canonical: localizedPath,
+      languages: {
+        en: withLocale("en", path),
+        ko: withLocale("ko", path),
+      },
+    },
     openGraph: {
       title,
       description,
@@ -69,13 +89,16 @@ export default async function ProductPage({
 
   const allParts = await getActiveParts();
   const related = allParts.filter((p) => p.cat === part.cat && p.id !== part.id).slice(0, 4);
-  const locale = await getLocale();
+  const locale = (await getLocale()) as SeoLocale;
   const t = await getTranslations("Product");
+  const brandCollection = getBrandCollectionForPart(part);
+  const categoryCollection = getCategoryCollectionForPart(part);
 
   // One image per part today; the gallery scales up if that ever changes.
   const galleryImages =
     part.imageStatus === "approved" && part.imageUrl ? [part.imageUrl] : [];
-  const productUrl = absoluteUrl(`/products/${encodeURIComponent(part.pn)}`);
+  const productPath = withLocale(locale, `/products/${encodeURIComponent(part.pn)}`);
+  const productUrl = absoluteUrl(productPath);
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -90,10 +113,19 @@ export default async function ProductPage({
     description: productDescription(part),
     image: galleryImages,
     url: productUrl,
+    itemCondition:
+      part.cond === "refurb"
+        ? "https://schema.org/RefurbishedCondition"
+        : "https://schema.org/UsedCondition",
     additionalProperty: [
       { "@type": "PropertyValue", name: "Condition", value: COND[part.cond] ?? part.cond },
       { "@type": "PropertyValue", name: "Lifecycle status", value: part.life },
       { "@type": "PropertyValue", name: "Lead time", value: part.lead },
+      {
+        "@type": "PropertyValue",
+        name: "Availability",
+        value: part.availabilityLabel ?? (part.stock === "in" ? "In stock" : "Source on request"),
+      },
       ...(part.series ? [{ "@type": "PropertyValue", name: "Series", value: part.series }] : []),
       ...(part.controllerGeneration
         ? [
@@ -105,17 +137,10 @@ export default async function ProductPage({
           ]
         : []),
     ],
-    offers: {
-      "@type": "Offer",
-      availability:
-        part.stock === "in" ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
-      itemCondition:
-        part.cond === "refurb"
-          ? "https://schema.org/RefurbishedCondition"
-          : "https://schema.org/UsedCondition",
-      url: productUrl,
-    },
   };
+  const categoryPath = categoryCollection
+    ? withLocale(locale, `/categories/${categoryCollection.slug}`)
+    : `${withLocale(locale, "/catalog")}?cat=${encodeURIComponent(part.cat)}`;
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -123,14 +148,14 @@ export default async function ProductPage({
       {
         "@type": "ListItem",
         position: 1,
-        name: "Catalog",
-        item: absoluteUrl("/catalog"),
+        name: locale === "ko" ? "홈" : "Home",
+        item: absoluteUrl(withLocale(locale, "/")),
       },
       {
         "@type": "ListItem",
         position: 2,
         name: CAT_LABEL[part.cat] ?? part.cat,
-        item: absoluteUrl(`/catalog?cat=${encodeURIComponent(part.cat)}`),
+        item: absoluteUrl(categoryPath),
       },
       {
         "@type": "ListItem",
@@ -145,11 +170,11 @@ export default async function ProductPage({
     <div className="app">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(productJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <Header variant="app" />
       <ViewCounter pn={part.pn} />
@@ -160,7 +185,7 @@ export default async function ProductPage({
           <span className="sep">
             <Ic.chevron style={{ width: 14, height: 14 }} />
           </span>
-          <Link href={`${withLocale(locale, "/catalog")}?cat=${part.cat}`}>{CAT_LABEL[part.cat]}</Link>
+          <Link href={categoryPath}>{CAT_LABEL[part.cat]}</Link>
           <span className="sep">
             <Ic.chevron style={{ width: 14, height: 14 }} />
           </span>
@@ -192,7 +217,7 @@ export default async function ProductPage({
             <div style={{ marginTop: 34 }}>
               <h3 className="section-h">{t("specifications")}</h3>
               <Specs part={part} />
-              {/* <Compat part={part} /> */}
+              <Compat part={part} />
 
               {related.length > 0 && (
                 <>
@@ -218,6 +243,18 @@ export default async function ProductPage({
             <h1 className="pdp-pn mono">{part.pn}</h1>
             <p className="pdp-name">{part.name}</p>
             <p className="pdp-name">{t("description", { brand: part.brand, pn: part.pn })}</p>
+            <div className="pdp-seo-links">
+              {brandCollection && (
+                <Link href={withLocale(locale, `/brands/${brandCollection.slug}`)}>
+                  {brandCollection.title[locale]}
+                </Link>
+              )}
+              {categoryCollection && (
+                <Link href={withLocale(locale, `/categories/${categoryCollection.slug}`)}>
+                  {categoryCollection.title[locale]}
+                </Link>
+              )}
+            </div>
             <div className="pdp-badges">
               <StockBadge part={part} />
               <LifeBadge life={part.life} />

@@ -167,6 +167,12 @@ export interface AnalyticsOverview {
   uniqueVisitors: number;
   emailClicks: number;
   catalogScrollEvents: number;
+  homepageViews: number;
+  homepageVisitors: number;
+  homepageActions: number;
+  homepageQualifiedVisitors: number;
+  homepageQualifiedActionRate: number;
+  homepageCatalogViews: number;
   eventsTruncated: boolean;
   topPartsByClick: Array<{ partPn: string; clicks: number }>;
   topConvertingParts: Array<{ partPn: string; clicks: number; rfqs: number; conversionRate: number }>;
@@ -175,6 +181,12 @@ export interface AnalyticsOverview {
   topCountries: Array<{ countryCode: string; count: number }>;
   topPages: Array<{ pagePath: string; count: number }>;
   topSurfaces: Array<{ surface: string; count: number }>;
+  entryPageBreakdown: Array<{
+    entryPage: string;
+    visitors: number;
+    qualifiedVisitors: number;
+    qualifiedActionRate: number;
+  }>;
   eventBreakdown: Array<{ eventName: string; count: number }>;
   dailySeries: Array<{ day: string; total: number; clicks: number; searches: number; rfqs: number; whatsapp: number }>;
   recentEvents: Array<{
@@ -226,6 +238,10 @@ export function summarizeEventMetadata(meta: Record<string, unknown> | null): st
   if (Array.isArray(meta.stock) && meta.stock.length) bits.push(`stock: ${meta.stock.join(",")}`);
   if (typeof meta.line_count === "number") bits.push(`lines: ${meta.line_count}`);
   if (typeof meta.source === "string") bits.push(`source: ${meta.source}`);
+  if (typeof meta.brand === "string") bits.push(`brand: ${meta.brand}`);
+  if (typeof meta.category === "string") bits.push(`category: ${meta.category}`);
+  if (typeof meta.entry_page === "string") bits.push(`entry: ${meta.entry_page}`);
+  if (typeof meta.referrer === "string") bits.push(`referrer: ${meta.referrer}`);
 
   if (bits.length > 0) return bits.join(" · ");
 
@@ -239,6 +255,24 @@ export function summarizeEventMetadata(meta: Record<string, unknown> | null): st
 
 const ANALYTICS_ROW_LIMIT = 10_000;
 
+const QUALIFIED_ACTION_EVENTS = new Set([
+  "homepage_search",
+  "homepage_brand_click",
+  "homepage_category_click",
+  "homepage_ready_product_click",
+  "homepage_bulk_rfq_open",
+  "catalog_item_click",
+  "catalog_search",
+  "catalog_no_results",
+  "whatsapp_click",
+  "rfq_submitted",
+  "bulk_rfq_submitted",
+]);
+
+function isHomepagePath(path: string | null | undefined): boolean {
+  return path === "/" || path === "/en" || path === "/en/" || path === "/ko" || path === "/ko/";
+}
+
 function filterRowsByEvent<T extends { event_name: string }>(
   rows: T[],
   eventFilter: AnalyticsEventFilter,
@@ -248,12 +282,21 @@ function filterRowsByEvent<T extends { event_name: string }>(
     return rows.filter(
       (r) =>
         r.event_name === "catalog_item_click" ||
+        r.event_name === "homepage_brand_click" ||
+        r.event_name === "homepage_category_click" ||
+        r.event_name === "homepage_ready_product_click" ||
+        r.event_name === "homepage_bulk_rfq_open" ||
         r.event_name === "whatsapp_click" ||
         r.event_name === "email_click",
     );
   }
   if (eventFilter === "searches") {
-    return rows.filter((r) => r.event_name === "catalog_search" || r.event_name === "catalog_no_results");
+    return rows.filter(
+      (r) =>
+        r.event_name === "homepage_search" ||
+        r.event_name === "catalog_search" ||
+        r.event_name === "catalog_no_results",
+    );
   }
   return rows.filter((r) => r.event_name === "rfq_submitted" || r.event_name === "bulk_rfq_submitted");
 }
@@ -301,6 +344,12 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
         uniqueVisitors: 0,
         emailClicks: 0,
         catalogScrollEvents: 0,
+        homepageViews: 0,
+        homepageVisitors: 0,
+        homepageActions: 0,
+        homepageQualifiedVisitors: 0,
+        homepageQualifiedActionRate: 0,
+        homepageCatalogViews: 0,
         eventsTruncated: false,
         topPartsByClick: [],
         topConvertingParts: [],
@@ -309,6 +358,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
         topCountries: [],
         topPages: [],
         topSurfaces: [],
+        entryPageBreakdown: [],
         eventBreakdown: [],
         dailySeries: [],
         recentEvents: [],
@@ -337,8 +387,18 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     const day = row.created_at.slice(0, 10);
     const bucket = perDay.get(day) ?? { total: 0, clicks: 0, searches: 0, rfqs: 0, whatsapp: 0 };
     bucket.total += 1;
-    if (row.event_name === "catalog_item_click") bucket.clicks += 1;
-    if (row.event_name === "catalog_search" || row.event_name === "catalog_no_results") bucket.searches += 1;
+    if (
+      row.event_name === "catalog_item_click" ||
+      row.event_name === "homepage_brand_click" ||
+      row.event_name === "homepage_category_click" ||
+      row.event_name === "homepage_ready_product_click" ||
+      row.event_name === "homepage_bulk_rfq_open"
+    ) bucket.clicks += 1;
+    if (
+      row.event_name === "homepage_search" ||
+      row.event_name === "catalog_search" ||
+      row.event_name === "catalog_no_results"
+    ) bucket.searches += 1;
     if (row.event_name === "rfq_submitted" || row.event_name === "bulk_rfq_submitted") bucket.rfqs += 1;
     if (row.event_name === "whatsapp_click") bucket.whatsapp += 1;
     perDay.set(day, bucket);
@@ -376,6 +436,69 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
       partRfqs.set(row.part_pn, (partRfqs.get(row.part_pn) ?? 0) + 1);
     }
   }
+
+  const entryVisitors = new Map<string, Set<string>>();
+  const entryQualifiedVisitors = new Map<string, Set<string>>();
+  for (const row of allRows) {
+    const meta = asMetadata(row.metadata);
+    const entryPage =
+      meta && typeof meta.entry_page === "string"
+        ? meta.entry_page
+        : row.event_name === "session_entry"
+          ? row.page_path
+          : null;
+    if (!entryPage || !row.ip_hash) continue;
+
+    if (row.event_name === "session_entry") {
+      const visitors = entryVisitors.get(entryPage) ?? new Set<string>();
+      visitors.add(row.ip_hash);
+      entryVisitors.set(entryPage, visitors);
+    }
+    if (QUALIFIED_ACTION_EVENTS.has(row.event_name)) {
+      const qualified = entryQualifiedVisitors.get(entryPage) ?? new Set<string>();
+      qualified.add(row.ip_hash);
+      entryQualifiedVisitors.set(entryPage, qualified);
+    }
+  }
+
+  const entryPageBreakdown = [...new Set([...entryVisitors.keys(), ...entryQualifiedVisitors.keys()])]
+    .map((entryPage) => {
+      const visitors = entryVisitors.get(entryPage)?.size ?? 0;
+      const qualifiedVisitors = entryQualifiedVisitors.get(entryPage)?.size ?? 0;
+      return {
+        entryPage,
+        visitors,
+        qualifiedVisitors,
+        qualifiedActionRate: visitors > 0 ? qualifiedVisitors / visitors : 0,
+      };
+    })
+    .sort((a, b) => b.visitors - a.visitors || b.qualifiedVisitors - a.qualifiedVisitors);
+
+  const homepageViews = allRows.filter((row) => row.event_name === "homepage_view").length;
+  const homepageVisitorHashes = new Set(
+    allRows
+      .filter((row) => row.event_name === "homepage_view" && row.ip_hash)
+      .map((row) => row.ip_hash as string),
+  );
+  const homepageQualifiedHashes = new Set<string>();
+  let homepageActions = 0;
+  for (const row of allRows) {
+    if (!QUALIFIED_ACTION_EVENTS.has(row.event_name)) continue;
+    const meta = asMetadata(row.metadata);
+    const entryPage = meta && typeof meta.entry_page === "string" ? meta.entry_page : null;
+    if (!isHomepagePath(entryPage)) continue;
+    homepageActions += 1;
+    if (row.ip_hash) homepageQualifiedHashes.add(row.ip_hash);
+  }
+  const homepageVisitors = homepageVisitorHashes.size;
+  const homepageQualifiedVisitors = homepageQualifiedHashes.size;
+  const homepageQualifiedActionRate =
+    homepageVisitors > 0 ? homepageQualifiedVisitors / homepageVisitors : 0;
+  const homepageCatalogViews = allRows.filter((row) => {
+    if (row.event_name !== "catalog_view") return false;
+    const meta = asMetadata(row.metadata);
+    return isHomepagePath(meta && typeof meta.entry_page === "string" ? meta.entry_page : null);
+  }).length;
 
   const topPartsByClick = [...filteredPartClicks.entries()]
     .map(([partPn, clicks]) => ({ partPn, clicks }))
@@ -450,6 +573,12 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     whatsappClicks: rows.filter((r) => r.event_name === "whatsapp_click").length,
     emailClicks: rows.filter((r) => r.event_name === "email_click").length,
     catalogScrollEvents: rows.filter((r) => r.event_name === "catalog_scroll_depth").length,
+    homepageViews,
+    homepageVisitors,
+    homepageActions,
+    homepageQualifiedVisitors,
+    homepageQualifiedActionRate,
+    homepageCatalogViews,
     rfqSubmittedEvents: rows.filter((r) => r.event_name === "rfq_submitted" || r.event_name === "bulk_rfq_submitted")
       .length,
     catalogSearches: rows.filter((r) => r.event_name === "catalog_search" || r.event_name === "catalog_no_results")
@@ -465,6 +594,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     topCountries,
     topPages,
     topSurfaces,
+    entryPageBreakdown,
     eventBreakdown,
     dailySeries,
     recentEvents,

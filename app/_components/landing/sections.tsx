@@ -181,7 +181,7 @@ export function SourcingConfidence() {
   );
 }
 
-export function EmergencyBand() {
+export function EmergencyBand({ findPartHref }: { findPartHref?: string }) {
   const locale = useLocale();
   const t = useTranslations("LandingSections");
 
@@ -202,7 +202,7 @@ export function EmergencyBand() {
                 color: "#fff",
                 border: "1px solid rgba(255,255,255,.2)",
               }}
-              href={withLocale(locale, "/catalog")}
+              href={findPartHref ?? withLocale(locale, "/catalog")}
             >
               <Ic.bolt /> {t("findMyPart")}
             </Link>

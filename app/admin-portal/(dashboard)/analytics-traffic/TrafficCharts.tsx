@@ -87,6 +87,14 @@ function useMeasuredWidthById(elementId: string) {
 
 function eventLabel(eventName: string): string {
   const map: Record<string, string> = {
+    session_entry: "Session entry",
+    homepage_view: "Homepage view",
+    homepage_search: "Homepage search",
+    homepage_brand_click: "Homepage brand click",
+    homepage_category_click: "Homepage category click",
+    homepage_ready_product_click: "Homepage product click",
+    homepage_bulk_rfq_open: "Homepage bulk RFQ open",
+    catalog_view: "Catalog view",
     catalog_item_click: "Catalog item click",
     catalog_search: "Catalog search",
     catalog_no_results: "No-result search",

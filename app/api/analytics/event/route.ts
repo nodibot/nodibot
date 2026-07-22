@@ -112,10 +112,26 @@ export async function POST(request: Request) {
       ip_hash: ipHash,
       metadata: body.metadata ?? {},
     });
-    if (error) throw error;
+    if (error) {
+      const code = "code" in error ? String(error.code) : undefined;
+      console.error("analytics event insert failed:", {
+        event_name: body.event_name,
+        code,
+        message: error.message,
+        details: error.details,
+        hint:
+          code === "23514"
+            ? "DB check constraint website_events_event_name_check is behind the app allowlist — apply supabase/migrations/0010_homepage_funnel_events.sql"
+            : error.hint,
+      });
+      return NextResponse.json({ ok: false }, { status: 500 });
+    }
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (err) {
-    console.error("analytics event insert failed:", err);
+    console.error("analytics event insert failed:", {
+      event_name: body.event_name,
+      err,
+    });
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

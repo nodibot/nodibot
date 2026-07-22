@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 import { Ic } from "@/app/_components/icons";
 import { buildContactEmailHref } from "@/app/_lib/contact-email";
 import { trackEvent } from "@/app/_lib/analytics-client";
+import { withLocale } from "@/app/_lib/locale-path";
 import { buildWhatsAppHref } from "@/app/_lib/whatsapp";
 import type { Channel } from "@/app/_lib/types";
 
@@ -33,6 +35,7 @@ const CHANNELS: { id: Channel; icon: React.ReactNode }[] = [
 ];
 
 export function NoMatchRfqForm({ partPn }: { partPn: string }) {
+  const locale = useLocale();
   const [form, setForm] = useState<FormState>(INITIAL);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -238,7 +241,8 @@ export function NoMatchRfqForm({ partPn }: { partPn: string }) {
           <Ic.shield /> No payment now. We quote after sourcing review.
         </div>
         <div className="rfq-assure">
-          Have several missing parts? <Link href="/bulk-rfq">Send a bulk RFQ</Link>
+          Have several missing parts?{" "}
+          <Link href={withLocale(locale, "/bulk-rfq")}>Send a bulk RFQ</Link>
         </div>
       </div>
     </div>

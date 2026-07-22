@@ -141,7 +141,7 @@ export default async function TrafficAnalyticsPage({
             {analytics.eventsTruncated ? " · showing latest 10,000 events" : ""}
           </div>
         </div>
-        <Link className="btn btn-ghost" href="/admin-portal/inquiries">
+        <Link className="btn btn-ghost" href="/admin-portal/inquiries" prefetch={false}>
           Open inquiries
         </Link>
       </div>
@@ -151,6 +151,7 @@ export default async function TrafficAnalyticsPage({
           {DAYS.map((d) => (
             <Link
               key={d}
+              prefetch={false}
               href={`/admin-portal/analytics-traffic?days=${d}&event=${analytics.appliedEventFilter}`}
               className={"btn " + (analytics.days === d ? "btn-primary" : "btn-ghost")}
             >
@@ -163,6 +164,7 @@ export default async function TrafficAnalyticsPage({
           {EVENT_FILTERS.map((f) => (
             <Link
               key={f}
+              prefetch={false}
               href={`/admin-portal/analytics-traffic?days=${analytics.days}&event=${f}`}
               className={"btn " + (analytics.appliedEventFilter === f ? "btn-primary" : "btn-ghost")}
             >

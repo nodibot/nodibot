@@ -7,6 +7,7 @@ import { CatalogView } from "@/app/_components/catalog/CatalogView";
 import { getActiveParts } from "@/app/_lib/parts";
 import { HOST_BY_ID } from "@/app/_lib/taxonomy";
 import { withLocale } from "@/app/_lib/locale-path";
+import { localeLanguages } from "@/app/_lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -17,10 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
       "Search verified refurbished controllers, servo drives, teach pendants and reducers by exact part number. Filter by category, host system and availability.",
     alternates: {
       canonical,
-      languages: {
-        en: withLocale("en", "/catalog"),
-        ko: withLocale("ko", "/catalog"),
-      },
+      languages: localeLanguages("/catalog"),
     },
     openGraph: {
       title: "Catalog — search secondary-market automation parts",

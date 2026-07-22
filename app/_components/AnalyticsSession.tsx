@@ -7,6 +7,11 @@ const ENTRY_RECORDED_KEY = "nodibot-entry-recorded";
 
 export function AnalyticsSession() {
   useEffect(() => {
+    const pathname = window.location.pathname;
+    if (pathname === "/admin-portal" || pathname.startsWith("/admin-portal/")) {
+      return;
+    }
+
     try {
       if (sessionStorage.getItem(ENTRY_RECORDED_KEY)) return;
       sessionStorage.setItem(ENTRY_RECORDED_KEY, "1");

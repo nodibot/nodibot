@@ -29,13 +29,26 @@ export interface AnalyticsEventPayload {
   metadata?: Record<string, unknown>;
 }
 
+function isAdminPath(pathname: string): boolean {
+  return pathname === "/admin-portal" || pathname.startsWith("/admin-portal/");
+}
+
 export function trackEvent(payload: AnalyticsEventPayload): void {
+  const pathname = payload.page_path ?? (typeof window !== "undefined" ? window.location.pathname : "");
+  if (pathname && isAdminPath(pathname)) return;
+
   let entryPage: string | undefined;
   try {
     entryPage = sessionStorage.getItem("nodibot-entry-page") ?? undefined;
     if (!entryPage) {
       entryPage = window.location.pathname;
-      sessionStorage.setItem("nodibot-entry-page", entryPage);
+      if (isAdminPath(entryPage)) {
+        entryPage = undefined;
+      } else {
+        sessionStorage.setItem("nodibot-entry-page", entryPage);
+      }
+    } else if (isAdminPath(entryPage)) {
+      entryPage = undefined;
     }
   } catch {
     // Storage can be unavailable in privacy modes; analytics still proceeds.

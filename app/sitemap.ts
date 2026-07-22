@@ -28,6 +28,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily" as const,
       priority: 0.9,
     },
+    {
+      url: absoluteUrl(withLocale(locale, "/bulk-rfq")),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
   ]);
 
   const collectionRoutes: MetadataRoute.Sitemap = locales.flatMap((locale) => [

@@ -94,6 +94,7 @@ export function CatalogView({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const mounted = useRef(false);
   const trackedNoResultQueries = useRef<Set<string>>(new Set());
+  const trackedSearchQueries = useRef<Set<string>>(new Set());
   const query = initialQuery;
 
   const toggle = (group: Group, id: string) =>
@@ -189,6 +190,23 @@ export function CatalogView({
         cats: sel.cats,
         hosts: sel.hosts,
         stock: sel.stock,
+      },
+    });
+  }, [query, results.length, sel.cats, sel.hosts, sel.stock]);
+
+  useEffect(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery || results.length === 0 || trackedSearchQueries.current.has(normalizedQuery)) return;
+
+    trackedSearchQueries.current.add(normalizedQuery);
+    trackEvent({
+      event_name: "catalog_search",
+      query,
+      metadata: {
+        cats: sel.cats,
+        hosts: sel.hosts,
+        stock: sel.stock,
+        results: results.length,
       },
     });
   }, [query, results.length, sel.cats, sel.hosts, sel.stock]);

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { CollectionPage } from "@/app/_components/seo/CollectionPage";
 import { withLocale } from "@/app/_lib/locale-path";
 import { getActiveParts } from "@/app/_lib/parts";
-import { absoluteUrl } from "@/app/_lib/seo";
+import { absoluteUrl, localeLanguages } from "@/app/_lib/seo";
 import {
   CATEGORY_COLLECTIONS,
   getSeoCollection,
@@ -36,10 +36,7 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: localizedPath,
-      languages: {
-        en: withLocale("en", path),
-        ko: withLocale("ko", path),
-      },
+      languages: localeLanguages(path),
     },
     openGraph: {
       title,

@@ -13,7 +13,7 @@ import { ViewCounter } from "@/app/_components/product/ViewCounter";
 import { RfqForm } from "@/app/_components/rfq/RfqForm";
 import { withLocale } from "@/app/_lib/locale-path";
 import { getActiveParts, getPartByPn } from "@/app/_lib/parts";
-import { absoluteUrl, SITE_NAME } from "@/app/_lib/seo";
+import { absoluteUrl, localeLanguages, SITE_NAME } from "@/app/_lib/seo";
 import { CAT_LABEL, COND } from "@/app/_lib/taxonomy";
 import {
   getBrandCollectionForPart,
@@ -40,7 +40,7 @@ export async function generateMetadata({
   const { pn } = await params;
   const part = await getPartByPn(decodeURIComponent(pn));
   if (!part) {
-    return { title: "Part not found" };
+    return { title: "Part not found", robots: { index: false, follow: true } };
   }
   const locale = (await getLocale()) as SeoLocale;
   const title = `${part.pn} ${part.brand} ${part.name} | Tested automation part`;
@@ -55,10 +55,7 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: localizedPath,
-      languages: {
-        en: withLocale("en", path),
-        ko: withLocale("ko", path),
-      },
+      languages: localeLanguages(path),
     },
     openGraph: {
       title,
@@ -69,7 +66,7 @@ export async function generateMetadata({
       images,
     },
     twitter: {
-      card: images.length > 0 ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
       images,
@@ -117,6 +114,22 @@ export default async function ProductPage({
       part.cond === "refurb"
         ? "https://schema.org/RefurbishedCondition"
         : "https://schema.org/UsedCondition",
+    offers: {
+      "@type": "Offer",
+      url: productUrl,
+      availability:
+        part.stock === "in"
+          ? "https://schema.org/InStock"
+          : "https://schema.org/PreOrder",
+      itemCondition:
+        part.cond === "refurb"
+          ? "https://schema.org/RefurbishedCondition"
+          : "https://schema.org/UsedCondition",
+      seller: {
+        "@type": "Organization",
+        name: SITE_NAME,
+      },
+    },
     additionalProperty: [
       { "@type": "PropertyValue", name: "Condition", value: COND[part.cond] ?? part.cond },
       { "@type": "PropertyValue", name: "Lifecycle status", value: part.life },

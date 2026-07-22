@@ -11,5 +11,11 @@ export {
 type PaginationProps = Omit<BasePaginationProps, "className">;
 
 export function Pagination(props: PaginationProps) {
-  return <BasePagination {...props} className="admin-pagination" />;
+  return (
+    <BasePagination
+      {...props}
+      className="admin-pagination"
+      prefetch={props.prefetch ?? false}
+    />
+  );
 }

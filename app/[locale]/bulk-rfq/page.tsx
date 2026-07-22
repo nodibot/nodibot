@@ -1,1 +1,1 @@
-export { default, metadata } from "../../bulk-rfq/page";
+export { default, generateMetadata } from "../../bulk-rfq/page";

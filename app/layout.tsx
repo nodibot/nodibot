@@ -48,8 +48,9 @@ export const metadata: Metadata = {
   },
   description:
     "Verified secondary-market controllers, drives, teach pendants and reducers for discontinued FANUC, ABB, KUKA, Yaskawa & Siemens automation. Drop a part number — we locate, test, and quote.",
+  // Page-level generateMetadata overrides this with locale-prefixed URLs.
   alternates: {
-    canonical: "/",
+    canonical: "/en",
   },
   openGraph: {
     title: "nodibot — Industrial automation parts, sourced on demand",
@@ -61,7 +62,7 @@ export const metadata: Metadata = {
     locale: "en_US",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "nodibot — Industrial automation parts, sourced on demand",
     description:
       "Search exact industrial automation part numbers and request sourcing, testing status, lead time, and availability from nodibot.",

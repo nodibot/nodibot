@@ -17,7 +17,12 @@ export function AdminNav() {
   return (
     <nav className="admin-nav">
       {LINKS.map((l) => (
-        <Link key={l.href} href={l.href} className={pathname.startsWith(l.href) ? "on" : ""}>
+        <Link
+          key={l.href}
+          href={l.href}
+          prefetch={false}
+          className={pathname.startsWith(l.href) ? "on" : ""}
+        >
           {l.icon}
           {l.label}
         </Link>

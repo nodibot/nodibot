@@ -1,9 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { getLocale } from "next-intl/server";
 import { Header } from "@/app/_components/header";
 import { Footer } from "@/app/_components/footer";
 import { Ic } from "@/app/_components/icons";
+import { withLocale } from "@/app/_lib/locale-path";
 
-export default function PartNotFound() {
+export const metadata: Metadata = {
+  title: "Part not found",
+  robots: { index: false, follow: true },
+};
+
+export default async function PartNotFound() {
+  const locale = await getLocale();
+  const catalogHref = withLocale(locale, "/catalog");
+
   return (
     <div className="app">
       <Header variant="app" />
@@ -16,10 +27,10 @@ export default function PartNotFound() {
           verified China supply network — send us the number and we&apos;ll quote you.
         </p>
         <div className="cta-row" style={{ justifyContent: "center" }}>
-          <Link className="btn btn-primary btn-lg" href="/catalog">
+          <Link className="btn btn-primary btn-lg" href={catalogHref}>
             <Ic.search /> Search the catalog
           </Link>
-          <Link className="btn btn-ghost btn-lg" href="/catalog">
+          <Link className="btn btn-ghost btn-lg" href={catalogHref}>
             <Ic.doc /> Request a quote
           </Link>
         </div>

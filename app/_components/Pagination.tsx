@@ -18,6 +18,8 @@ export interface PaginationProps {
   pageParam?: string;
   labels?: Partial<PaginationLabels>;
   className?: string;
+  /** Next.js Link prefetch; disable on heavy dynamic admin pages. Default true. */
+  prefetch?: boolean;
 }
 
 export function Pagination({
@@ -29,6 +31,7 @@ export function Pagination({
   pageParam = "page",
   labels,
   className = "site-pagination",
+  prefetch = true,
 }: PaginationProps) {
   const copy = { ...DEFAULT_LABELS, ...labels };
   const { safePage, totalPages, start, end } = getPaginationMeta(currentPage, totalItems, pageSize);
@@ -45,6 +48,7 @@ export function Pagination({
           className={`btn btn-ghost btn-sm ${safePage === 1 ? "is-disabled" : ""}`}
           href={buildPaginationHref(pathname, safePage - 1, searchParams, pageParam)}
           tabIndex={safePage === 1 ? -1 : undefined}
+          prefetch={prefetch}
         >
           {copy.prev}
         </Link>
@@ -59,6 +63,7 @@ export function Pagination({
               aria-current={entry === safePage ? "page" : undefined}
               className={`btn btn-sm ${entry === safePage ? "btn-primary" : "btn-ghost"}`}
               href={buildPaginationHref(pathname, entry, searchParams, pageParam)}
+              prefetch={prefetch}
             >
               {entry}
             </Link>
@@ -69,6 +74,7 @@ export function Pagination({
           className={`btn btn-ghost btn-sm ${safePage === totalPages ? "is-disabled" : ""}`}
           href={buildPaginationHref(pathname, safePage + 1, searchParams, pageParam)}
           tabIndex={safePage === totalPages ? -1 : undefined}
+          prefetch={prefetch}
         >
           {copy.next}
         </Link>

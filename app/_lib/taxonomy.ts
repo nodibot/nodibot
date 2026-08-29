@@ -15,8 +15,9 @@ export interface Host {
   arms: string;
 }
 
-// Five functional pillars.
+// Functional pillars. Robots (whole arms) lead; the rest are spare-part pillars.
 export const CATEGORIES: Category[] = [
+  { id: "robots", label: "Industrial Robots", tier: "Whole arms", blurb: "Refurbished ABB IRB robots by payload & reach" },
   { id: "controllers", label: "Controllers & Computing", tier: "The brain", blurb: "PLC cards, axis computers, comms blocks" },
   { id: "hmi", label: "HMIs & Displays", tier: "Daily wear", blurb: "Teach pendants, touchscreens, operator panels" },
   { id: "motion", label: "Motion & Drive Systems", tier: "Urgent panic", blurb: "Servo drives, amplifiers, inverters, motors" },
@@ -44,6 +45,7 @@ export const COND: Record<string, string> = {
 
 // Short labels for placeholder imagery, keyed by category.
 export const PH_LABEL: Record<string, string> = {
+  robots: "robot arm",
   controllers: "PLC / processor",
   hmi: "teach pendant",
   motion: "servo drive",

@@ -13,7 +13,7 @@
  * Requires the service/secret key (bypasses RLS). Reads NEXT_PUBLIC_SUPABASE_URL
  * and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY) from .env.local.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, rmSync } from "node:fs";
 import { resolve, extname } from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
@@ -171,6 +171,11 @@ async function main() {
   if (skipped.length) {
     console.log("Skipped files:");
     for (const f of skipped) console.log(`  ${f}`);
+  }
+
+  if (!DRY_RUN && uploaded > 0) {
+    rmSync(resolve(process.cwd(), IMAGE_DIR), { recursive: true, force: true });
+    console.log(`Removed local ./${IMAGE_DIR} (photos live in Supabase Storage).`);
   }
 }
 

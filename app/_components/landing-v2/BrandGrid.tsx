@@ -6,14 +6,9 @@ import { trackEvent } from "@/app/_lib/analytics-client";
 import { withLocale } from "@/app/_lib/locale-path";
 import { HOST_BY_ID } from "@/app/_lib/taxonomy";
 
-const BRAND_IDS = ["fanuc", "abb", "siemens", "yaskawa", "ab", "kuka"] as const;
+const BRAND_IDS = ["abb"] as const;
 const BRAND_SLUGS: Record<(typeof BRAND_IDS)[number], string> = {
-  fanuc: "fanuc",
   abb: "abb",
-  siemens: "siemens",
-  yaskawa: "yaskawa",
-  ab: "allen-bradley",
-  kuka: "kuka",
 };
 
 /** Compact brand chip row — intended to sit inside the Ready to ship section. */

@@ -88,14 +88,9 @@ function brandCollection(
   };
 }
 
+// Inventory is currently ABB-only, so only the ABB brand collection is published.
 export const BRAND_COLLECTIONS: SeoCollection[] = [
-  brandCollection("fanuc", "fanuc", "FANUC", "R-J3, R-30iA and R-30iB"),
   brandCollection("abb", "abb", "ABB", "S4C+, IRC5 and OmniCore"),
-  brandCollection("siemens", "siemens", "Siemens", "S7-300, S7-1500 and SINAMICS"),
-  brandCollection("yaskawa", "yaskawa", "Yaskawa / Motoman", "NX100, DX100, DX200 and YRC1000"),
-  brandCollection("allen-bradley", "ab", "Allen-Bradley", "ControlLogix, CompactLogix and PanelView"),
-  brandCollection("kuka", "kuka", "KUKA", "KRC2 and KRC4"),
-  brandCollection("mitsubishi", "mitsubishi", "Mitsubishi", "CR, FR and MELFA"),
 ];
 
 const pendantPattern = /pendant|teach|teaching/i;

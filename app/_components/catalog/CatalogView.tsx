@@ -27,9 +27,13 @@ const CATALOG_PAGE_SIZE = 20;
 function CatalogHero({
   hostFilter,
   toggleHost,
+  partsCount,
+  catCount,
 }: {
   hostFilter: string[];
   toggleHost: (id: string) => void;
+  partsCount: number;
+  catCount: number;
 }) {
   const t = useTranslations("Catalog");
   return (
@@ -41,7 +45,7 @@ function CatalogHero({
         <p>{t("heroSubtitle")}</p>
         <div className="hero-stats">
           <div className="hero-stat">
-            <div className="n">12,400+</div>
+            <div className="n">{partsCount}</div>
             <div className="l">{t("indexed")}</div>
           </div>
           <div className="hero-stat">
@@ -49,8 +53,8 @@ function CatalogHero({
             <div className="l">{t("medianResponse")}</div>
           </div>
           <div className="hero-stat">
-            <div className="n">7</div>
-            <div className="l">{t("hostFamilies")}</div>
+            <div className="n">{catCount}</div>
+            <div className="l">{t("categoryCount")}</div>
           </div>
         </div>
         <div className="host-row">
@@ -245,7 +249,12 @@ export function CatalogView({
         resultsCount={results.length}
       />
       <CatalogTopbarMeasure />
-      <CatalogHero hostFilter={sel.hosts} toggleHost={(id) => toggle("hosts", id)} />
+      <CatalogHero
+        hostFilter={sel.hosts}
+        toggleHost={(id) => toggle("hosts", id)}
+        partsCount={parts.length}
+        catCount={new Set(parts.map((p) => p.cat)).size}
+      />
       <div className="wrap">
         <div className="mobile-catalog-bar">
           <button

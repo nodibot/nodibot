@@ -193,7 +193,7 @@ export function ProductForm({
 
       <div className="grid3">
         <div className="field">
-          <label>Image URL</label>
+          <label>Image URL (primary)</label>
           <input name="image_url" defaultValue={part?.imageUrl ?? ""} placeholder="https://..." />
         </div>
         <div className="field">
@@ -210,6 +210,15 @@ export function ProductForm({
             ))}
           </select>
         </div>
+      </div>
+
+      <div className="field">
+        <label>Gallery URLs (primary first, one per line)</label>
+        <textarea
+          name="image_urls"
+          defaultValue={lines(part?.imageUrls)}
+          placeholder="https://.../primary.jpg&#10;https://.../label.jpg"
+        />
       </div>
 
       <div className="grid3">

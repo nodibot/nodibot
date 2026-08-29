@@ -16,7 +16,8 @@ export interface RealItem {
   equipment_type: string | null;
   qty: number;                   // physical units in hand
   alternative_pns: string[];
-  primaryImage: string | null;   // media filename inside the source docx
+  images: string[];              // all docx media filenames, primary first
+  primaryImage: string | null;   // first media filename (catalog card)
   docNames: string[];            // original doc line names (traceability)
   existing: boolean;             // already a row in the DB (was crawled/dummy)
   existingImageStatus: string | null;
@@ -26,7 +27,7 @@ export const REAL_ITEMS: RealItem[] = [
   {
     "pn": "IRB120-3/0.6",
     "brand": "ABB",
-    "name": "IRB 120 — 3 kg / 0.6 m",
+    "name": "IRB 120 \u2014 3 kg / 0.6 m",
     "cat": "robots",
     "series": "IRB 120",
     "equipment_type": "6-axis articulated robot",
@@ -37,12 +38,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB120-3/0.6"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image35.jpeg",
+      "image36.jpeg"
+    ]
   },
   {
     "pn": "IRB1200-5/0.9",
     "brand": "ABB",
-    "name": "IRB 1200 — 5 kg / 0.9 m",
+    "name": "IRB 1200 \u2014 5 kg / 0.9 m",
     "cat": "robots",
     "series": "IRB 1200",
     "equipment_type": "6-axis articulated robot",
@@ -53,12 +58,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB1200-5/0.9"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image5.jpeg",
+      "image6.jpeg"
+    ]
   },
   {
     "pn": "IRB1200-7/0.7",
     "brand": "ABB",
-    "name": "IRB 1200 — 7 kg / 0.7 m",
+    "name": "IRB 1200 \u2014 7 kg / 0.7 m",
     "cat": "robots",
     "series": "IRB 1200",
     "equipment_type": "6-axis articulated robot",
@@ -69,12 +78,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB1200-7/0.7"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image3.jpeg",
+      "image4.jpeg"
+    ]
   },
   {
     "pn": "IRB14000-0.5/0.5",
     "brand": "ABB",
-    "name": "IRB 14000 — 0.5 kg / 0.5 m (YuMi)",
+    "name": "IRB 14000 \u2014 0.5 kg / 0.5 m (YuMi)",
     "cat": "robots",
     "series": "IRB 14000",
     "equipment_type": "dual-arm collaborative robot",
@@ -85,12 +98,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB14000-0.5/0.5"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image49.jpeg",
+      "image50.jpeg"
+    ]
   },
   {
     "pn": "IRB1410-5/1.45",
     "brand": "ABB",
-    "name": "IRB 1410 — 5 kg / 1.45 m",
+    "name": "IRB 1410 \u2014 5 kg / 1.45 m",
     "cat": "robots",
     "series": "IRB 1410",
     "equipment_type": "6-axis articulated robot",
@@ -101,12 +118,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB1410-5/1.45"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image31.jpeg",
+      "image32.jpeg"
+    ]
   },
   {
     "pn": "IRB1600-10/1.45",
     "brand": "ABB",
-    "name": "IRB 1600 — 10 kg / 1.45 m",
+    "name": "IRB 1600 \u2014 10 kg / 1.45 m",
     "cat": "robots",
     "series": "IRB 1600",
     "equipment_type": "6-axis articulated robot",
@@ -117,12 +138,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB1600-10/1.45"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image15.jpeg",
+      "image16.jpeg"
+    ]
   },
   {
     "pn": "IRB1600ID-6/1.55",
     "brand": "ABB",
-    "name": "IRB 1600ID — 6 kg / 1.55 m",
+    "name": "IRB 1600ID \u2014 6 kg / 1.55 m",
     "cat": "robots",
     "series": "IRB 1600ID",
     "equipment_type": "6-axis articulated robot (integrated dressing)",
@@ -133,7 +158,11 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB1600ID-6/1.55"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image7.jpeg",
+      "image8.jpeg"
+    ]
   },
   {
     "pn": "IRB2400/16",
@@ -149,12 +178,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB2400/16"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image39.jpeg",
+      "image40.jpeg"
+    ]
   },
   {
     "pn": "IRB2600-12/1.85",
     "brand": "ABB",
-    "name": "IRB 2600 — 12 kg / 1.85 m",
+    "name": "IRB 2600 \u2014 12 kg / 1.85 m",
     "cat": "robots",
     "series": "IRB 2600",
     "equipment_type": "6-axis articulated robot",
@@ -165,12 +198,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB2600-12/1.85"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image37.jpeg",
+      "image38.jpeg"
+    ]
   },
   {
     "pn": "IRB2600-20/1.65",
     "brand": "ABB",
-    "name": "IRB 2600 — 20 kg / 1.65 m",
+    "name": "IRB 2600 \u2014 20 kg / 1.65 m",
     "cat": "robots",
     "series": "IRB 2600",
     "equipment_type": "6-axis articulated robot",
@@ -182,12 +219,17 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB2600-20/1.65"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image1.jpeg",
+      "image11.jpeg",
+      "image2.jpeg"
+    ]
   },
   {
     "pn": "IRB2600ID/8/2.00",
     "brand": "ABB",
-    "name": "IRB 2600ID — 8 kg / 2.00 m",
+    "name": "IRB 2600ID \u2014 8 kg / 2.00 m",
     "cat": "robots",
     "series": "IRB 2600ID",
     "equipment_type": "6-axis articulated robot (integrated dressing)",
@@ -198,7 +240,11 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB2600ID/8/2.00"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image51.jpeg",
+      "image52.jpeg"
+    ]
   },
   {
     "pn": "IRB4400/60",
@@ -214,7 +260,11 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB4400/60"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image29.jpeg",
+      "image30.jpeg"
+    ]
   },
   {
     "pn": "IRB4400L-10",
@@ -230,12 +280,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB4400L-10"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image41.jpeg",
+      "image42.jpeg"
+    ]
   },
   {
     "pn": "IRB4600-40/2.55",
     "brand": "ABB",
-    "name": "IRB 4600 — 40 kg / 2.55 m",
+    "name": "IRB 4600 \u2014 40 kg / 2.55 m",
     "cat": "robots",
     "series": "IRB 4600",
     "equipment_type": "6-axis articulated robot",
@@ -246,12 +300,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB4600-40/2.55"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image1.jpeg",
+      "image2.jpeg"
+    ]
   },
   {
     "pn": "IRB4600-45/2.05",
     "brand": "ABB",
-    "name": "IRB 4600 — 45 kg / 2.05 m",
+    "name": "IRB 4600 \u2014 45 kg / 2.05 m",
     "cat": "robots",
     "series": "IRB 4600",
     "equipment_type": "6-axis articulated robot",
@@ -262,12 +320,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB4600-45/2.05"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image45.jpeg",
+      "image46.jpeg"
+    ]
   },
   {
     "pn": "IRB4600-60/2.05",
     "brand": "ABB",
-    "name": "IRB 4600 — 60 kg / 2.05 m",
+    "name": "IRB 4600 \u2014 60 kg / 2.05 m",
     "cat": "robots",
     "series": "IRB 4600",
     "equipment_type": "6-axis articulated robot",
@@ -279,7 +341,12 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB4600-60/2.05"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image17.jpeg",
+      "image19.jpeg",
+      "image18.jpeg"
+    ]
   },
   {
     "pn": "IRB52",
@@ -295,7 +362,11 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB52"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image43.jpeg",
+      "image44.jpeg"
+    ]
   },
   {
     "pn": "IRB5510",
@@ -311,12 +382,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB5510"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image25.jpeg",
+      "image26.jpeg"
+    ]
   },
   {
     "pn": "IRB660-180/3.15",
     "brand": "ABB",
-    "name": "IRB 660 — 180 kg / 3.15 m Palletizer",
+    "name": "IRB 660 \u2014 180 kg / 3.15 m Palletizer",
     "cat": "robots",
     "series": "IRB 660",
     "equipment_type": "4-axis palletizing robot",
@@ -327,12 +402,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB660-180/3.15"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image13.jpeg",
+      "image14.jpeg"
+    ]
   },
   {
     "pn": "IRB6640-130/3.2",
     "brand": "ABB",
-    "name": "IRB 6640 — 130 kg / 3.2 m",
+    "name": "IRB 6640 \u2014 130 kg / 3.2 m",
     "cat": "robots",
     "series": "IRB 6640",
     "equipment_type": "6-axis articulated robot",
@@ -343,12 +422,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB6640-130/3.2"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image33.jpeg",
+      "image34.jpeg"
+    ]
   },
   {
     "pn": "IRB6700-150/3.2",
     "brand": "ABB",
-    "name": "IRB 6700 — 150 kg / 3.2 m",
+    "name": "IRB 6700 \u2014 150 kg / 3.2 m",
     "cat": "robots",
     "series": "IRB 6700",
     "equipment_type": "6-axis articulated robot",
@@ -359,12 +442,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB6700-150/3.2"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image27.jpeg",
+      "image28.jpeg"
+    ]
   },
   {
     "pn": "IRB6700-200/2.60",
     "brand": "ABB",
-    "name": "IRB 6700 — 200 kg / 2.60 m",
+    "name": "IRB 6700 \u2014 200 kg / 2.60 m",
     "cat": "robots",
     "series": "IRB 6700",
     "equipment_type": "6-axis articulated robot",
@@ -375,12 +462,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB6700-200/2.60"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image9.jpeg",
+      "image10.jpeg"
+    ]
   },
   {
     "pn": "IRB6700-235/2.65",
     "brand": "ABB",
-    "name": "IRB 6700 — 235 kg / 2.65 m",
+    "name": "IRB 6700 \u2014 235 kg / 2.65 m",
     "cat": "robots",
     "series": "IRB 6700",
     "equipment_type": "6-axis articulated robot",
@@ -391,12 +482,16 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB6700-235/2.65"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image21.jpeg",
+      "image22.jpeg"
+    ]
   },
   {
     "pn": "IRB6700-300/2.70",
     "brand": "ABB",
-    "name": "IRB 6700 — 300 kg / 2.70 m",
+    "name": "IRB 6700 \u2014 300 kg / 2.70 m",
     "cat": "robots",
     "series": "IRB 6700",
     "equipment_type": "6-axis articulated robot",
@@ -408,7 +503,12 @@ export const REAL_ITEMS: RealItem[] = [
       "IRB6700-300/2.70"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image23.jpeg",
+      "image47.jpeg",
+      "image24.jpeg"
+    ]
   },
   {
     "pn": "3HAC044075-001",
@@ -421,10 +521,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image92.jpeg",
     "docNames": [
-      "ABB电池3HAC044075-001"
+      "ABB\u7535\u6c603HAC044075-001"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image92.jpeg"
+    ]
   },
   {
     "pn": "3HAC16831-1",
@@ -437,10 +540,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image87.jpeg",
     "docNames": [
-      "ABB电池3HAC16831-1"
+      "ABB\u7535\u6c603HAC16831-1"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image87.jpeg"
+    ]
   },
   {
     "pn": "3HAC025097-001",
@@ -455,11 +561,15 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image67.jpeg",
     "docNames": [
-      "主机3HAC025097-001",
-      "主板DSQC639"
+      "\u4e3b\u673a3HAC025097-001",
+      "\u4e3b\u677fDSQC639"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image67.jpeg",
+      "image74.jpeg"
+    ]
   },
   {
     "pn": "3HAC025784-001",
@@ -474,10 +584,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image65.jpeg",
     "docNames": [
-      "IO模块DSQC651"
+      "IO\u6a21\u5757DSQC651"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image65.jpeg"
+    ]
   },
   {
     "pn": "3HAC025917-001",
@@ -492,10 +605,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image66.jpeg",
     "docNames": [
-      "IO模块DSQC652"
+      "IO\u6a21\u5757DSQC652"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image66.jpeg"
+    ]
   },
   {
     "pn": "3HAC026272-001",
@@ -508,10 +624,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image76.jpeg",
     "docNames": [
-      "安全板卡3HAC026272-001"
+      "\u5b89\u5168\u677f\u53613HAC026272-001"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image76.jpeg"
+    ]
   },
   {
     "pn": "3HAC029157-001",
@@ -526,11 +645,16 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image77.jpeg",
     "docNames": [
-      "轴计算机板卡DSQC668",
-      "轴计算机板卡DSQC668"
+      "\u8f74\u8ba1\u7b97\u673a\u677f\u5361DSQC668",
+      "\u8f74\u8ba1\u7b97\u673a\u677f\u5361DSQC668"
     ],
     "existing": true,
-    "existingImageStatus": "missing"
+    "existingImageStatus": "missing",
+    "images": [
+      "image77.jpeg",
+      "image85.jpeg",
+      "image78.jpeg"
+    ]
   },
   {
     "pn": "3HAC031670-001",
@@ -545,10 +669,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image73.jpeg",
     "docNames": [
-      "Profinet板卡DSQC688"
+      "Profinet\u677f\u5361DSQC688"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image73.jpeg"
+    ]
   },
   {
     "pn": "3HAC037084-001",
@@ -563,10 +690,14 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image57.jpeg",
     "docNames": [
-      "DeviceNet板DSQC697"
+      "DeviceNet\u677fDSQC697"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image57.jpeg",
+      "image58.jpeg"
+    ]
   },
   {
     "pn": "3HAC042766-001",
@@ -581,10 +712,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image75.jpeg",
     "docNames": [
-      "ABB主机DSQC1000"
+      "ABB\u4e3b\u673aDSQC1000"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image75.jpeg"
+    ]
   },
   {
     "pn": "3HAC050363-001",
@@ -599,10 +733,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image83.jpeg",
     "docNames": [
-      "主机DSQC1018"
+      "\u4e3b\u673aDSQC1018"
     ],
     "existing": true,
-    "existingImageStatus": "missing"
+    "existingImageStatus": "missing",
+    "images": [
+      "image83.jpeg"
+    ]
   },
   {
     "pn": "3HAC058663-001",
@@ -617,10 +754,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image64.jpeg",
     "docNames": [
-      "IO模块DSQC1030"
+      "IO\u6a21\u5757DSQC1030"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image64.jpeg"
+    ]
   },
   {
     "pn": "3HAC058665-001",
@@ -635,10 +775,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image98.jpeg",
     "docNames": [
-      "IO模块DSQC1032"
+      "IO\u6a21\u5757DSQC1032"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image98.jpeg"
+    ]
   },
   {
     "pn": "DSQC1003",
@@ -651,10 +794,14 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image107.jpeg",
     "docNames": [
-      "串口板DSQC1003"
+      "\u4e32\u53e3\u677fDSQC1003"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image107.jpeg",
+      "image108.jpeg"
+    ]
   },
   {
     "pn": "DSQC1006",
@@ -667,11 +814,15 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image93.jpeg",
     "docNames": [
-      "DeviceNet板DSQC1006 N",
-      "DeviceNet板DSQC1006"
+      "DeviceNet\u677fDSQC1006 N",
+      "DeviceNet\u677fDSQC1006"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image93.jpeg",
+      "image94.jpeg"
+    ]
   },
   {
     "pn": "DSQC1015",
@@ -684,10 +835,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image63.jpeg",
     "docNames": [
-      "安全模块DSQC1015"
+      "\u5b89\u5168\u6a21\u5757DSQC1015"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image63.jpeg"
+    ]
   },
   {
     "pn": "DSQC337B",
@@ -700,10 +854,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image54.jpeg",
     "docNames": [
-      "传送带跟踪板DSQC337B"
+      "\u4f20\u9001\u5e26\u8ddf\u8e2a\u677fDSQC337B"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image54.jpeg"
+    ]
   },
   {
     "pn": "DSQC378B",
@@ -716,10 +873,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image55.jpeg",
     "docNames": [
-      "CC-link板卡DSQC378B"
+      "CC-link\u677f\u5361DSQC378B"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image55.jpeg"
+    ]
   },
   {
     "pn": "DSQC669",
@@ -732,10 +892,14 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image80.jpeg",
     "docNames": [
-      "EtherNet板卡DSQC669"
+      "EtherNet\u677f\u5361DSQC669"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image80.jpeg",
+      "image81.jpeg"
+    ]
   },
   {
     "pn": "3HAC028357-001",
@@ -750,11 +914,16 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image69.jpeg",
     "docNames": [
-      "示教器DSQC679",
-      "全新示教器DSQC679"
+      "\u793a\u6559\u5668DSQC679",
+      "\u5168\u65b0\u793a\u6559\u5668DSQC679"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image69.jpeg",
+      "image88.jpeg",
+      "image70.jpeg"
+    ]
   },
   {
     "pn": "3HAC033624-001",
@@ -767,10 +936,14 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image99.jpeg",
     "docNames": [
-      "示教器主板3HAC033624-001"
+      "\u793a\u6559\u5668\u4e3b\u677f3HAC033624-001"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image99.jpeg",
+      "image100.jpeg"
+    ]
   },
   {
     "pn": "3HAC052287-002",
@@ -783,10 +956,14 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image96.jpeg",
     "docNames": [
-      "档位开关3HAC052287-002"
+      "\u6863\u4f4d\u5f00\u51733HAC052287-002"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image96.jpeg",
+      "image97.jpeg"
+    ]
   },
   {
     "pn": "3HNA012283-0001",
@@ -799,10 +976,14 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image104.jpeg",
     "docNames": [
-      "喷涂示教器3HNA012283-0001"
+      "\u55b7\u6d82\u793a\u6559\u56683HNA012283-0001"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image104.jpeg",
+      "image105.jpeg"
+    ]
   },
   {
     "pn": "3HNE00313-1",
@@ -817,10 +998,14 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image89.jpeg",
     "docNames": [
-      "老款示教器TPU2"
+      "\u8001\u6b3e\u793a\u6559\u5668TPU2"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image89.jpeg",
+      "image90.jpeg"
+    ]
   },
   {
     "pn": "DSQC3060",
@@ -833,10 +1018,14 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image71.jpeg",
     "docNames": [
-      "示教器DSQC3060"
+      "\u793a\u6559\u5668DSQC3060"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image71.jpeg",
+      "image72.jpeg"
+    ]
   },
   {
     "pn": "DSQC3122",
@@ -849,10 +1038,14 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image60.jpeg",
     "docNames": [
-      "示教器DSQC3122"
+      "\u793a\u6559\u5668DSQC3122"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image60.jpeg",
+      "image61.jpeg"
+    ]
   },
   {
     "pn": "JC200-0049",
@@ -865,10 +1058,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image95.jpeg",
     "docNames": [
-      "全新示教器摇杆JC200-0049"
+      "\u5168\u65b0\u793a\u6559\u5668\u6447\u6746JC200-0049"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image95.jpeg"
+    ]
   },
   {
     "pn": "3HAC022286-001",
@@ -881,10 +1077,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image79.jpeg",
     "docNames": [
-      "SMB板卡3HAC022286-001"
+      "SMB\u677f\u53613HAC022286-001"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image79.jpeg"
+    ]
   },
   {
     "pn": "3HAC025338-002",
@@ -897,10 +1096,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image59.jpeg",
     "docNames": [
-      "ABB驱动3HAC025338-002"
+      "ABB\u9a71\u52a83HAC025338-002"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image59.jpeg"
+    ]
   },
   {
     "pn": "3HAC025338-004",
@@ -913,10 +1115,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image68.jpeg",
     "docNames": [
-      "黑驱动3HAC025338-004"
+      "\u9ed1\u9a71\u52a83HAC025338-004"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image68.jpeg"
+    ]
   },
   {
     "pn": "3HAC026253-001",
@@ -931,10 +1136,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image53.jpeg",
     "docNames": [
-      "电源模块DSQC661"
+      "\u7535\u6e90\u6a21\u5757DSQC661"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image53.jpeg"
+    ]
   },
   {
     "pn": "3HAC029818-001",
@@ -949,10 +1157,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image106.jpeg",
     "docNames": [
-      "驱动DSQC663"
+      "\u9a71\u52a8DSQC663"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image106.jpeg"
+    ]
   },
   {
     "pn": "3HAC030923-001",
@@ -967,10 +1178,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image56.jpeg",
     "docNames": [
-      "外部轴驱动DSQC664"
+      "\u5916\u90e8\u8f74\u9a71\u52a8DSQC664"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image56.jpeg"
+    ]
   },
   {
     "pn": "3HAC035301-001",
@@ -985,10 +1199,13 @@ export const REAL_ITEMS: RealItem[] = [
     ],
     "primaryImage": "image91.jpeg",
     "docNames": [
-      "驱动DSQC406"
+      "\u9a71\u52a8DSQC406"
     ],
     "existing": true,
-    "existingImageStatus": "approved"
+    "existingImageStatus": "approved",
+    "images": [
+      "image91.jpeg"
+    ]
   },
   {
     "pn": "3HAC044168-001",
@@ -1001,10 +1218,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image84.jpeg",
     "docNames": [
-      "SMB板卡3HAC044168-001"
+      "SMB\u677f\u53613HAC044168-001"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image84.jpeg"
+    ]
   },
   {
     "pn": "3HAC14549-3",
@@ -1017,10 +1237,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image62.jpeg",
     "docNames": [
-      "ABB小驱动3HAC14549-3"
+      "ABB\u5c0f\u9a71\u52a83HAC14549-3"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image62.jpeg"
+    ]
   },
   {
     "pn": "3HAC17339-1/01",
@@ -1033,10 +1256,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image102.jpeg",
     "docNames": [
-      "ABB电机3HAC17339-1/01ABB"
+      "ABB\u7535\u673a3HAC17339-1/01ABB"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image102.jpeg"
+    ]
   },
   {
     "pn": "3HAC17340-1/00",
@@ -1049,10 +1275,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image103.jpeg",
     "docNames": [
-      "电机3HAC17340-1/00"
+      "\u7535\u673a3HAC17340-1/00"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image103.jpeg"
+    ]
   },
   {
     "pn": "3HAC17342-1/01",
@@ -1065,10 +1294,13 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image101.jpeg",
     "docNames": [
-      "ABB电机3HAC17342-1/01"
+      "ABB\u7535\u673a3HAC17342-1/01"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image101.jpeg"
+    ]
   },
   {
     "pn": "3HAC7998-1",
@@ -1081,10 +1313,11 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": null,
     "docNames": [
-      "编码器线3HAC7998-1"
+      "\u7f16\u7801\u5668\u7ebf3HAC7998-1"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": []
   },
   {
     "pn": "DSQC431",
@@ -1097,9 +1330,12 @@ export const REAL_ITEMS: RealItem[] = [
     "alternative_pns": [],
     "primaryImage": "image82.jpeg",
     "docNames": [
-      "驱动DSQC431"
+      "\u9a71\u52a8DSQC431"
     ],
     "existing": false,
-    "existingImageStatus": null
+    "existingImageStatus": null,
+    "images": [
+      "image82.jpeg"
+    ]
   }
 ];

@@ -59,6 +59,7 @@ function parsePartForm(formData: FormData): AdminPartInput {
     description_kr: optStr("description_kr"),
     failure_keywords: lines("failure_keywords"),
     image_url: optStr("image_url"),
+    image_urls: lines("image_urls"),
     image_storage_path: optStr("image_storage_path"),
     image_status: imageStatus,
     demand_score: optNum("demand_score"),

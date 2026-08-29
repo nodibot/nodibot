@@ -1,16 +1,12 @@
 /**
- * Copies each real item's primary photo out of the supplier document's media
- * folder into ./final, named so the existing images:upload script links it to
- * the right part (filename prefix normalizes to the part number).
+ * Copies each real item's photos out of the supplier document's media folder
+ * into ./final, named so images:upload can match them to a part.
  *
- *   # 1. unzip the .docx somewhere and point at its word/media dir:
  *   npx tsx scripts/extract-doc-images.ts --media-dir /path/to/unpacked/word/media
  *   npx tsx scripts/extract-doc-images.ts --media-dir <dir> --dry-run
  *
- * A photo is placed only where it fills a gap:
- *   - brand-new items, and
- *   - overlaps whose existing DB image is still 'missing'.
- * Items whose DB row already has a good photo are left untouched.
+ * Filenames are `{pn}_{index}_ABB_{name}.jpg` — index 1 is the catalog primary
+ * (product shot first, as in the Word file), 2+ are extra gallery photos.
  *
  * After this, run:  npm run images:upload
  */
@@ -26,9 +22,17 @@ function arg(name: string): string | undefined {
 }
 const DRY_RUN = process.argv.includes("--dry-run");
 
-// Make a filesystem-safe filename prefix whose normalized form still equals the
-// part number (images:upload matches on the normalized prefix).
+// Filesystem-safe prefix whose normalized form still equals the part number.
 const safe = (s: string) => s.replace(/[\/\\:*?"<>|]+/g, "-").replace(/\s+/g, "_").trim();
+
+function itemImages(item: (typeof REAL_ITEMS)[number]): string[] {
+  if (item.images?.length) return item.images;
+  return item.primaryImage ? [item.primaryImage] : [];
+}
+
+function destName(pn: string, name: string, index: number): string {
+  return `${safe(pn)}_${index}_ABB_${safe(name)}.jpg`;
+}
 
 function main() {
   const mediaDir = arg("--media-dir");
@@ -38,26 +42,34 @@ function main() {
   const outAbs = resolve(process.cwd(), OUT_DIR);
   if (!DRY_RUN && !existsSync(outAbs)) mkdirSync(outAbs, { recursive: true });
 
-  let placed = 0, skippedHasPhoto = 0, skippedNoImage = 0, missingSrc = 0;
+  let placed = 0, skippedNoImage = 0, missingSrc = 0;
   for (const item of REAL_ITEMS) {
-    const needsPhoto = !item.existing || item.existingImageStatus === "missing";
-    if (!needsPhoto) { skippedHasPhoto++; continue; }
-    if (!item.primaryImage) { skippedNoImage++; console.log(`  (no image in doc)  ${item.pn}`); continue; }
-
-    const src = join(mediaDir, item.primaryImage);
-    if (!existsSync(src)) { missingSrc++; console.log(`  ⚠ source missing: ${item.primaryImage} for ${item.pn}`); continue; }
-
-    const dest = join(outAbs, `${safe(item.pn)}_ABB_${safe(item.name)}.jpg`);
-    if (DRY_RUN) {
-      console.log(`  [dry] ${item.primaryImage}  ->  ${OUT_DIR}/${safe(item.pn)}_ABB_${safe(item.name)}.jpg`);
-    } else {
-      copyFileSync(src, dest);
+    const images = itemImages(item);
+    if (images.length === 0) {
+      skippedNoImage++;
+      console.log(`  (no image in doc)  ${item.pn}`);
+      continue;
     }
-    placed++;
+
+    images.forEach((file, i) => {
+      const src = join(mediaDir, file);
+      const dest = destName(item.pn, item.name, i + 1);
+      if (!existsSync(src)) {
+        missingSrc++;
+        console.log(`  ⚠ source missing: ${file} for ${item.pn}`);
+        return;
+      }
+      if (DRY_RUN) {
+        console.log(`  [dry] ${file}  ->  ${OUT_DIR}/${dest}`);
+      } else {
+        copyFileSync(src, join(outAbs, dest));
+      }
+      placed++;
+    });
   }
 
   console.log(`\n${DRY_RUN ? "[DRY RUN] " : ""}Placed ${placed} photos into ./${OUT_DIR}.`);
-  console.log(`Skipped: ${skippedHasPhoto} already have a photo, ${skippedNoImage} have no doc image, ${missingSrc} missing source.`);
+  console.log(`Skipped: ${skippedNoImage} have no doc image, ${missingSrc} missing source.`);
   if (!DRY_RUN) console.log("Next: npm run images:upload");
 }
 

@@ -5,10 +5,9 @@
  *   npx tsx scripts/upload-product-images.ts            # real run
  *   npx tsx scripts/upload-product-images.ts --dry-run  # report only, no writes
  *
- * For every matched file it:
- *   1. uploads to the `product-images` bucket at <pn>.<ext> (upsert),
- *   2. sets parts.image_storage_path, parts.image_url (public URL),
- *      parts.image_status = 'approved'.
+ * Files named `{pn}_{index}_…` are grouped per part. Index 1 becomes the
+ * catalog primary (`image_url`); all URLs are stored primary-first in
+ * `image_urls`. Storage keys: `<PN>.<ext>`, `<PN>_2.<ext>`, …
  *
  * Requires the service/secret key (bypasses RLS). Reads NEXT_PUBLIC_SUPABASE_URL
  * and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY) from .env.local.
@@ -49,20 +48,24 @@ function loadEnvLocal() {
   }
 }
 
-function pnFromFilename(file: string): string {
-  const stem = file.slice(0, file.length - extname(file).length);
-  const underscore = stem.indexOf("_");
-  return (underscore === -1 ? stem : stem.slice(0, underscore)).trim();
-}
-
 function norm(pn: string): string {
   return pn.toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
-// Storage object key for a part. Keep it stable & URL-safe, keyed on the
-// canonical pn so re-runs overwrite the same object instead of duplicating.
-function objectKey(pn: string, ext: string): string {
-  return `${norm(pn)}${ext.toLowerCase()}`;
+function parseImageFile(file: string): { pnPrefix: string; index: number } {
+  const stem = file.slice(0, file.length - extname(file).length);
+  const indexed = stem.match(/^(.+)_(\d+)_ABB(?:_|$)/);
+  if (indexed) return { pnPrefix: indexed[1], index: Number(indexed[2]) };
+  const underscore = stem.indexOf("_");
+  return {
+    pnPrefix: (underscore === -1 ? stem : stem.slice(0, underscore)).trim(),
+    index: 1,
+  };
+}
+
+function objectKey(pn: string, ext: string, index: number): string {
+  const base = `${norm(pn)}${ext.toLowerCase()}`;
+  return index <= 1 ? base : `${norm(pn)}_${index}${ext.toLowerCase()}`;
 }
 
 async function ensureBucket(supabase: SupabaseClient) {
@@ -113,61 +116,111 @@ async function main() {
 
   if (!DRY_RUN) await ensureBucket(supabase);
 
-  let uploaded = 0;
-  let linked = 0;
+  type Pending = { file: string; index: number };
+  const grouped = new Map<string, { hit: { id: string; pn: string }; files: Pending[] }>();
   const skipped: string[] = [];
 
   for (const file of files) {
-    const pn = pnFromFilename(file);
-    const hit = byPn.get(pn) ?? byNorm.get(norm(pn));
+    const { pnPrefix, index } = parseImageFile(file);
+    const hit = byPn.get(pnPrefix) ?? byNorm.get(norm(pnPrefix));
     if (!hit) {
       skipped.push(file);
       continue;
     }
+    const bucket = grouped.get(hit.id) ?? { hit, files: [] };
+    bucket.files.push({ file, index });
+    grouped.set(hit.id, bucket);
+  }
 
-    const ext = extname(file).toLowerCase();
-    const key = objectKey(hit.pn, ext);
+  let uploaded = 0;
+  let linked = 0;
+
+  for (const { hit, files: partFiles } of grouped.values()) {
+    partFiles.sort((a, b) => a.index - b.index || a.file.localeCompare(b.file));
+    const urls: string[] = [];
+    let primaryPath: string | null = null;
+
+    for (const { file, index } of partFiles) {
+      const ext = extname(file).toLowerCase();
+      const key = objectKey(hit.pn, ext, index);
+
+      if (DRY_RUN) {
+        console.log(`[dry] ${file}  ->  part ${hit.pn}  ->  ${BUCKET}/${key}`);
+        uploaded++;
+        urls.push(`https://example.invalid/${key}`);
+        if (!primaryPath) primaryPath = `${BUCKET}/${key}`;
+        continue;
+      }
+
+      const bytes = readFileSync(resolve(process.cwd(), IMAGE_DIR, file));
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(key, bytes, {
+        contentType: CONTENT_TYPES[ext] ?? "application/octet-stream",
+        upsert: true,
+      });
+      if (upErr) {
+        console.error(`  ✗ upload failed for ${file}: ${upErr.message}`);
+        skipped.push(file);
+        continue;
+      }
+      uploaded++;
+      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(key);
+      urls.push(pub.publicUrl);
+      if (!primaryPath) primaryPath = `${BUCKET}/${key}`;
+      console.log(`  ✓ ${hit.pn}  ${key}`);
+    }
+
+    if (urls.length === 0) continue;
 
     if (DRY_RUN) {
-      console.log(`[dry] ${file}  ->  part ${hit.pn}  ->  ${BUCKET}/${key}`);
-      uploaded++;
       linked++;
       continue;
     }
 
-    // 1. Upload (upsert so re-runs replace cleanly).
-    const bytes = readFileSync(resolve(process.cwd(), IMAGE_DIR, file));
-    const { error: upErr } = await supabase.storage.from(BUCKET).upload(key, bytes, {
-      contentType: CONTENT_TYPES[ext] ?? "application/octet-stream",
-      upsert: true,
-    });
-    if (upErr) {
-      console.error(`  ✗ upload failed for ${file}: ${upErr.message}`);
-      skipped.push(file);
-      continue;
-    }
-    uploaded++;
-
-    // 2. Link the row.
-    const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(key);
     const { error: updErr } = await supabase
       .from("parts")
       .update({
-        image_storage_path: `${BUCKET}/${key}`,
-        image_url: pub.publicUrl,
+        image_storage_path: primaryPath,
+        image_url: urls[0],
+        image_urls: urls,
         image_status: "approved",
       })
       .eq("id", hit.id);
-    if (updErr) {
+    if (updErr && /image_urls/i.test(updErr.message)) {
+      const { error: legacyErr } = await supabase
+        .from("parts")
+        .update({
+          image_storage_path: primaryPath,
+          image_url: urls[0],
+          image_status: "approved",
+        })
+        .eq("id", hit.id);
+      if (legacyErr) {
+        console.error(`  ✗ link failed for ${hit.pn}: ${legacyErr.message}`);
+        continue;
+      }
+      console.log(`  ⚠ ${hit.pn} linked without image_urls (run migration 0011)`);
+    } else if (updErr) {
       console.error(`  ✗ link failed for ${hit.pn}: ${updErr.message}`);
       continue;
     }
     linked++;
-    console.log(`  ✓ ${hit.pn}  ${key}`);
+
+    const maxIndex = Math.max(...partFiles.map((f) => f.index));
+    const leftovers: string[] = [];
+    for (let i = maxIndex + 1; i <= 8; i++) {
+      for (const ext of [".jpg", ".jpeg", ".png", ".webp"]) {
+        leftovers.push(objectKey(hit.pn, ext, i));
+      }
+    }
+    if (leftovers.length) {
+      const { error: rmErr } = await supabase.storage.from(BUCKET).remove(leftovers);
+      if (rmErr) console.error(`  ⚠ could not prune extras for ${hit.pn}: ${rmErr.message}`);
+      else console.log(`  pruned leftover extras for ${hit.pn} (indexes > ${maxIndex})`);
+    }
   }
 
   console.log("\n=== Done ===");
-  console.log(`${DRY_RUN ? "[DRY RUN] " : ""}Uploaded: ${uploaded}   Linked: ${linked}   Skipped: ${skipped.length}`);
+  console.log(`${DRY_RUN ? "[DRY RUN] " : ""}Uploaded: ${uploaded}   Linked parts: ${linked}   Skipped: ${skipped.length}`);
   if (skipped.length) {
     console.log("Skipped files:");
     for (const f of skipped) console.log(`  ${f}`);

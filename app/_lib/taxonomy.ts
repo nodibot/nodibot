@@ -26,14 +26,9 @@ export const CATEGORIES: Category[] = [
 ];
 
 // Host systems (machines parts are salvaged from / fit into).
+// Inventory is currently ABB-only (real supplier stock), so ABB is the sole host.
 export const HOSTS: Host[] = [
-  { id: "fanuc", label: "FANUC", systems: "R-J3 · R-30iA · R-30iB", arms: "M-20iA, M-710iC, R-2000iC, LR Mate, ARC Mate" },
-  { id: "abb", label: "ABB", systems: "S4C+ · IRC5 · OmniCore", arms: "IRB 1600, 2400, 2600, 4600, 6640, 6700" },
-  { id: "yaskawa", label: "Yaskawa / Motoman", systems: "NX100 · DX100 · DX200 · YRC1000", arms: "HP20, MH50, MH180, GP25, GP50" },
-  { id: "kuka", label: "KUKA", systems: "KRC2 · KRC4", arms: "KR16, KR60, KR150, KR210, KR360" },
-  { id: "mitsubishi", label: "Mitsubishi", systems: "CR · FR · MELFA", arms: "RV-7FL, RV-13FR, RV-20FR, RV-35F" },
-  { id: "siemens", label: "Siemens", systems: "S7-300 · S7-1500 · Sinamics", arms: "Line control & motion platforms" },
-  { id: "ab", label: "Allen-Bradley", systems: "ControlLogix · CompactLogix", arms: "PanelView & Logix platforms" },
+  { id: "abb", label: "ABB", systems: "S4C+ · IRC5 · OmniCore", arms: "IRB 120, 1200, 1600, 2400, 2600, 4600, 6640, 6700" },
 ];
 
 // Condition labels.

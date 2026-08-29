@@ -6,7 +6,7 @@
     "brands": "Brands",
     "inventory": "Inventory",
     "sellParts": "Sell parts",
-    "searchPlaceholder": "Paste a part number - e.g. 3HAC050363-001, A06B-6114-H206...",
+    "searchPlaceholder": "Paste a part number - e.g. IRB2600-20/1.65, 3HAC050363-001...",
     "searchAria": "Search parts",
     "toggleTheme": "Toggle theme",
     "language": "Language"
@@ -41,7 +41,7 @@
   "LandingV2": {
     "heroTitle": "Find Industrial Automation Parts Instantly.",
     "heroSubtitle": "Authentic surplus. Tested. Shipped globally via DHL Express.",
-    "searchPlaceholder": "Enter Part Number (e.g., A06B-6117-H207)",
+    "searchPlaceholder": "Enter Part Number (e.g., IRB2600-20/1.65)",
     "searchAria": "Search by part number",
     "searchButton": "Search Inventory",
     "panicCta": "Line Down? Text an Engineer Now for Emergency Sourcing.",
@@ -72,6 +72,7 @@
     "inventoryTitle": "Browse inventory",
     "inventoryLead": "Filter by brand or category above, or search by exact part number.",
     "categories": {
+      "robots": "Industrial Robots",
       "drives": "Servo Drives",
       "plcs": "PLCs",
       "hmi": "HMIs / Panels",
@@ -130,10 +131,11 @@
   "Catalog": {
     "heroTitlePrefix": "Industrial automation parts, ",
     "heroTitleEmphasis": "sourced on demand.",
-    "heroSubtitle": "Verified secondary-market controllers, drives, pendants and reducers for decommissioned FANUC, ABB, KUKA, Yaskawa & Siemens systems. Drop your part number - we locate, test, and quote.",
+    "heroSubtitle": "Verified secondary-market ABB robots, controllers, drives, teach pendants and motors for S4C+, IRC5 and OmniCore systems. Drop your part number - we locate, test, and quote.",
     "indexed": "Part numbers indexed",
     "medianResponse": "Median quote response",
     "hostFamilies": "OEM host families",
+    "categoryCount": "Product categories",
     "search": "Search",
     "filters": "Filters",
     "sortAria": "Sort catalog",

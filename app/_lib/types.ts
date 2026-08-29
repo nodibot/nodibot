@@ -31,6 +31,7 @@ export interface Part {
   descriptionKr: string | null;
   failureKeywords: string[];
   imageUrl: string | null;
+  imageUrls: string[];
   imageStoragePath: string | null;
   imageStatus: "missing" | "pending_review" | "approved" | "rejected";
 }
@@ -62,6 +63,7 @@ export interface PartRow {
   description_kr: string | null;
   failure_keywords: string[] | null;
   image_url: string | null;
+  image_urls?: string[] | null;
   image_storage_path: string | null;
   image_status: "missing" | "pending_review" | "approved" | "rejected";
 }
@@ -116,6 +118,7 @@ export interface AdminPartInput {
   description_kr: string | null;
   failure_keywords: string[];
   image_url: string | null;
+  image_urls: string[];
   image_storage_path: string | null;
   image_status: "missing" | "pending_review" | "approved" | "rejected";
   demand_score: number | null;
@@ -208,7 +211,22 @@ export function rowToPart(row: PartRow): Part {
     descriptionKr: row.description_kr,
     failureKeywords: row.failure_keywords ?? [],
     imageUrl: row.image_url,
+    imageUrls: row.image_urls ?? [],
     imageStoragePath: row.image_storage_path,
     imageStatus: row.image_status ?? "missing",
   };
+}
+
+/** Approved photos, primary first. Falls back to the single image_url. */
+export function partGalleryImages(part: Pick<Part, "imageStatus" | "imageUrl" | "imageUrls">): string[] {
+  if (part.imageStatus !== "approved") return [];
+  const ordered = part.imageUrls.length > 0 ? part.imageUrls : part.imageUrl ? [part.imageUrl] : [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const url of ordered) {
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    out.push(url);
+  }
+  return out;
 }

@@ -37,13 +37,15 @@ export async function getPartById(id: string): Promise<AdminPart | null> {
 export async function createPart(input: AdminPartInput): Promise<void> {
   const supabase = await createSupabaseServerClient();
   const id = crypto.randomUUID();
-  const { error } = await supabase.from("parts").insert({ id, ...input });
+  const { image_urls: _ignored, ...legacy } = input;
+  const { error } = await supabase.from("parts").insert({ id, ...legacy });
   if (error) throw new Error(error.message);
 }
 
 export async function updatePart(id: string, input: AdminPartInput): Promise<void> {
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("parts").update(input).eq("id", id);
+  const { image_urls: _ignored, ...legacy } = input;
+  const { error } = await supabase.from("parts").update(legacy).eq("id", id);
   if (error) throw new Error(error.message);
 }
 
@@ -78,12 +80,10 @@ export async function getInquiryById(id: string): Promise<Inquiry | null> {
 
 export async function getPartForInquiry(inquiry: Inquiry): Promise<AdminPart | null> {
   const supabase = await createSupabaseServerClient();
+  if (!inquiry.part_id && !inquiry.part_pn) return null;
   let query = supabase.from("parts").select(ADMIN_COLUMNS);
-
   if (inquiry.part_id) query = query.eq("id", inquiry.part_id);
-  else if (inquiry.part_pn) query = query.eq("pn", inquiry.part_pn);
-  else return null;
-
+  else query = query.eq("pn", inquiry.part_pn as string);
   const { data, error } = await query.maybeSingle();
   if (error) throw new Error(error.message);
   return data ? rowToAdminPart(data) : null;

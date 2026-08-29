@@ -4,15 +4,24 @@ import { useTranslations } from "next-intl";
 import { PH_LABEL } from "@/app/_lib/taxonomy";
 import type { Part } from "@/app/_lib/types";
 
-export function PartImage({ part, className }: { part: Part; className?: string }) {
+export function PartImage({
+  part,
+  className,
+  src,
+}: {
+  part: Part;
+  className?: string;
+  src?: string;
+}) {
   const t = useTranslations("Common");
+  const url = src ?? (part.imageStatus === "approved" ? part.imageUrl : null);
 
-  if (part.imageStatus === "approved" && part.imageUrl) {
+  if (url) {
     return (
       <div className={"ph " + (className || "")}>
         <Image
           className="ph-img"
-          src={part.imageUrl}
+          src={url}
           alt={`${part.brand} ${part.pn}`}
           fill
           sizes="(max-width: 760px) 58px, 320px"

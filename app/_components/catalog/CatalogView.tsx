@@ -20,8 +20,7 @@ import {
 } from "@/app/_lib/catalog";
 import type { Part } from "@/app/_lib/types";
 
-type Group = "cats" | "hosts" | "stock";
-const STOCK_OPTS = ["in", "request"] as const;
+type Group = "cats" | "hosts";
 const CATALOG_PAGE_SIZE = 20;
 
 function CatalogHero({
@@ -92,7 +91,6 @@ export function CatalogView({
   const [sel, setSel] = useState<Record<Group, string[]>>({
     cats: initialCat ? [initialCat] : [],
     hosts: initialHost ? [initialHost] : [],
-    stock: [],
   });
   const [sort, setSort] = useState<SortKey>("demand");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -112,7 +110,7 @@ export function CatalogView({
   const results = useMemo(
     () =>
       sortParts(
-        filterParts(parts, { cats: sel.cats, hosts: sel.hosts, stock: sel.stock, query }),
+        filterParts(parts, { cats: sel.cats, hosts: sel.hosts, stock: [], query }),
         sort,
       ),
     [parts, sel, query, sort],
@@ -133,9 +131,9 @@ export function CatalogView({
     return params;
   }, [query, initialCat, initialHost]);
 
-  const scrollDepthViewKey = `${currentPage}|${query}|${sel.cats.join(",")}|${sel.hosts.join(",")}|${sel.stock.join(",")}`;
+  const scrollDepthViewKey = `${currentPage}|${query}|${sel.cats.join(",")}|${sel.hosts.join(",")}`;
 
-  const activeFilterCount = sel.cats.length + sel.hosts.length + sel.stock.length;
+  const activeFilterCount = sel.cats.length + sel.hosts.length;
 
   const activeFilterChips = useMemo(() => {
     const chips: Array<{ group: Group; id: string; label: string }> = [];
@@ -147,21 +145,13 @@ export function CatalogView({
       const host = HOSTS.find((h) => h.id === id);
       if (host) chips.push({ group: "hosts", id, label: host.label });
     }
-    for (const id of sel.stock) {
-      chips.push({
-        group: "stock",
-        id,
-        label: id === "in" ? t("inStock") : t("sourceOnRequest"),
-      });
-    }
     return chips;
-  }, [sel.cats, sel.hosts, sel.stock, t]);
+  }, [sel.cats, sel.hosts]);
 
   const clearFilters = () =>
     setSel({
       cats: [],
       hosts: [],
-      stock: [],
     });
 
   useEffect(() => {
@@ -169,7 +159,7 @@ export function CatalogView({
     trackEvent({
       event_name: "catalog_filter_change",
       query: query || undefined,
-      metadata: { cats: sel.cats, hosts: sel.hosts, stock: sel.stock, results: results.length },
+      metadata: { cats: sel.cats, hosts: sel.hosts, results: results.length },
     });
   }, [sel, query, results.length]);
 
@@ -193,10 +183,9 @@ export function CatalogView({
       metadata: {
         cats: sel.cats,
         hosts: sel.hosts,
-        stock: sel.stock,
       },
     });
-  }, [query, results.length, sel.cats, sel.hosts, sel.stock]);
+  }, [query, results.length, sel.cats, sel.hosts]);
 
   useEffect(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -209,11 +198,10 @@ export function CatalogView({
       metadata: {
         cats: sel.cats,
         hosts: sel.hosts,
-        stock: sel.stock,
         results: results.length,
       },
     });
-  }, [query, results.length, sel.cats, sel.hosts, sel.stock]);
+  }, [query, results.length, sel.cats, sel.hosts]);
 
   useEffect(() => {
     mounted.current = true;
@@ -329,22 +317,6 @@ export function CatalogView({
                     <span className="box">{on && <Ic.check />}</span>
                     {h.label}
                     <span className="count">{counts.host[h.id] || 0}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="filter-group">
-              <h3 className="filter-h">{t("availability")}</h3>
-              {STOCK_OPTS.map((id) => {
-                const on = sel.stock.includes(id);
-                return (
-                  <div
-                    key={id}
-                    className={"filter-opt" + (on ? " on" : "")}
-                    onClick={() => toggle("stock", id)}
-                  >
-                    <span className="box">{on && <Ic.check />}</span>
-                    {id === "in" ? t("inStock") : t("sourceOnRequest")}
                   </div>
                 );
               })}

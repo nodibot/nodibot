@@ -9,7 +9,8 @@
  *   1. classifies each item as a whole robot (IRB…) or a part,
  *   2. resolves a canonical part-number (reusing the existing DB pn for items
  *      that already exist as crawled/dummy rows, so we never duplicate),
- *   3. de-dupes by canonical pn, summing quantities and keeping a primary photo,
+ *   3. de-dupes by canonical pn, summing quantities and keeping all photos
+ *      (Word order: product shot first, nameplate / extra shots after),
  *   4. derives an English name / category / series from the model number.
  *
  * Reads NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY from .env.local.
@@ -32,6 +33,7 @@ export interface RealItem {
   equipment_type: string | null;
   qty: number;             // physical units in hand (from duplicate line-items)
   alternative_pns: string[];
+  images: string[];              // all docx media filenames, primary first
   primaryImage: string | null;   // media filename inside the docx (image###.jpeg)
   docNames: string[];      // original doc line names (for traceability)
   existing: boolean;       // already a row in the DB (was crawled/dummy)
@@ -130,6 +132,38 @@ function parseRobot(name: string): { pn: string; name: string; series: string; e
   };
 }
 
+function uniqueImages(images: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const img of images) {
+    if (!img || seen.has(img)) continue;
+    seen.add(img);
+    out.push(img);
+  }
+  return out;
+}
+
+/** Word order: product shot first, dedicated nameplate second when a line has 2 photos. */
+function splitListing(images: string[]): { products: string[]; nameplate: string | null } {
+  const imgs = uniqueImages(images);
+  if (imgs.length >= 2) return { products: [imgs[0], ...imgs.slice(2)], nameplate: imgs[1] };
+  return { products: imgs, nameplate: null };
+}
+
+function addListing(
+  gallery: { products: string[]; nameplate: string | null },
+  listing: string[],
+): { products: string[]; nameplate: string | null } {
+  const next = splitListing(listing);
+  for (const p of next.products) if (!gallery.products.includes(p)) gallery.products.push(p);
+  if (!gallery.nameplate && next.nameplate) gallery.nameplate = next.nameplate;
+  return gallery;
+}
+
+function galleryImages(gallery: { products: string[]; nameplate: string | null }): string[] {
+  return uniqueImages([...gallery.products, ...(gallery.nameplate ? [gallery.nameplate] : [])]);
+}
+
 function partEnglishName(docName: string, label: string, code: string | null): string {
   const spec = docName.match(/\(([^)]+)\)/); // rarely present in doc, keep if so
   const base = code ? `${label} ${code}` : label;
@@ -157,6 +191,7 @@ async function main() {
   }
 
   const byPn = new Map<string, RealItem>();
+  const galleryByPn = new Map<string, { products: string[]; nameplate: string | null }>();
 
   for (const item of docItems) {
     const robot = parseRobot(item.name);
@@ -167,7 +202,8 @@ async function main() {
       resolved = {
         pn: robot.pn, brand: "ABB", name: robot.name, cat: "robots",
         series: robot.series, equipment_type: robot.equipment_type,
-        qty: 1, alternative_pns: [], primaryImage: item.images[0] ?? null,
+        qty: 1, alternative_pns: [], images: uniqueImages(item.images),
+        primaryImage: item.images[0] ?? null,
         docNames: [item.name], existing: !!existingRow,
         existingImageStatus: existingRow?.image_status ?? null,
       };
@@ -184,7 +220,8 @@ async function main() {
       resolved = {
         pn, brand: "ABB", name, cat, series: null,
         equipment_type: typeEntry?.label ?? null,
-        qty: 1, alternative_pns: altPns, primaryImage: item.images[0] ?? null,
+        qty: 1, alternative_pns: altPns, images: uniqueImages(item.images),
+        primaryImage: item.images[0] ?? null,
         docNames: [item.name], existing: !!dbRow,
         existingImageStatus: dbRow?.image_status ?? null,
       };
@@ -192,11 +229,17 @@ async function main() {
 
     // de-dupe by canonical pn
     const key = norm(resolved.pn);
+    const gallery = addListing(galleryByPn.get(key) ?? { products: [], nameplate: null }, item.images);
+    galleryByPn.set(key, gallery);
+    resolved.images = galleryImages(gallery);
+    resolved.primaryImage = resolved.images[0] ?? null;
+
     const prev = byPn.get(key);
     if (prev) {
       prev.qty += 1;
       prev.docNames.push(item.name);
-      if (!prev.primaryImage && resolved.primaryImage) prev.primaryImage = resolved.primaryImage;
+      prev.images = resolved.images;
+      prev.primaryImage = resolved.primaryImage;
       for (const a of resolved.alternative_pns) if (!prev.alternative_pns.includes(a)) prev.alternative_pns.push(a);
     } else {
       byPn.set(key, resolved);
@@ -215,7 +258,8 @@ async function main() {
     existingOverlaps: items.filter((i) => i.existing).length,
     brandNew: items.filter((i) => !i.existing).length,
     withPrimaryImage: items.filter((i) => i.primaryImage).length,
-    noImage: items.filter((i) => !i.primaryImage).map((i) => i.pn),
+    withTwoPlusImages: items.filter((i) => i.images.length >= 2).length,
+    noImage: items.filter((i) => i.images.length === 0).map((i) => i.pn),
     overlapsMissingImage: items.filter((i) => i.existing && i.existingImageStatus === "missing").map((i) => i.pn),
   };
 
@@ -238,7 +282,8 @@ export interface RealItem {
   equipment_type: string | null;
   qty: number;                   // physical units in hand
   alternative_pns: string[];
-  primaryImage: string | null;   // media filename inside the source docx
+  images: string[];              // all docx media filenames, primary first
+  primaryImage: string | null;   // first media filename (catalog card)
   docNames: string[];            // original doc line names (traceability)
   existing: boolean;             // already a row in the DB (was crawled/dummy)
   existingImageStatus: string | null;

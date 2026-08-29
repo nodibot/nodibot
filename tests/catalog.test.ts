@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { filterParts, sortParts, matchesQuery, computeCounts } from "../app/_lib/catalog";
-import type { Part } from "../app/_lib/types";
+import { partGalleryImages, type Part } from "../app/_lib/types";
 
 function part(over: Partial<Part>): Part {
   return {
@@ -28,6 +28,7 @@ function part(over: Partial<Part>): Part {
     descriptionKr: null,
     failureKeywords: [],
     imageUrl: null,
+    imageUrls: [],
     imageStoragePath: null,
     imageStatus: "missing",
     ...over,
@@ -89,6 +90,26 @@ describe("sortParts", () => {
   });
   it("sorts by category alphabetically", () => {
     expect(sortParts(parts, "category").map((p) => p.id)).toEqual(["hi", "lo"]);
+  });
+});
+
+describe("partGalleryImages", () => {
+  it("returns [] unless the image is approved", () => {
+    expect(partGalleryImages(part({ imageUrl: "https://a", imageUrls: ["https://a"], imageStatus: "missing" }))).toEqual([]);
+  });
+  it("uses image_urls when present, primary first", () => {
+    expect(
+      partGalleryImages(
+        part({
+          imageStatus: "approved",
+          imageUrl: "https://a",
+          imageUrls: ["https://a", "https://b"],
+        }),
+      ),
+    ).toEqual(["https://a", "https://b"]);
+  });
+  it("falls back to the single image_url", () => {
+    expect(partGalleryImages(part({ imageStatus: "approved", imageUrl: "https://a" }))).toEqual(["https://a"]);
   });
 });
 

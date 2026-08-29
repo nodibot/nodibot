@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { PartImage } from "@/app/_components/badges";
 import { Ic } from "@/app/_components/icons";
 import { trackEvent } from "@/app/_lib/analytics-client";
@@ -10,7 +10,6 @@ import type { Part } from "@/app/_lib/types";
 
 export function ProductCard({ part, revealIndex }: { part: Part; revealIndex?: number }) {
   const locale = useLocale();
-  const t = useTranslations("Catalog");
   const trackClick = (surface: "card" | "list") => {
     trackEvent({
       event_name: "catalog_item_click",
@@ -34,11 +33,7 @@ export function ProductCard({ part, revealIndex }: { part: Part; revealIndex?: n
         <div className="card-pn mono">{part.pn}</div>
         <p className="card-name">{part.name}</p>
         <div className="card-meta">
-          <div className="card-price quote">
-            <span className="cur">{part.availabilityLabel ?? "RFQ"}</span>
-            {t("requestQuote")}
-          </div>
-          <span style={{ color: "var(--accent)", display: "flex" }}>
+          <span style={{ color: "var(--accent)", display: "flex", marginLeft: "auto" }}>
             <Ic.arrowR style={{ width: 18, height: 18 }} />
           </span>
         </div>
@@ -49,7 +44,6 @@ export function ProductCard({ part, revealIndex }: { part: Part; revealIndex?: n
 
 export function ProductListItem({ part }: { part: Part }) {
   const locale = useLocale();
-  const t = useTranslations("Catalog");
   const trackClick = (surface: "card" | "list") => {
     trackEvent({
       event_name: "catalog_item_click",
@@ -71,10 +65,6 @@ export function ProductListItem({ part }: { part: Part }) {
         <p className="part-row-name">{part.name}</p>
       </div>
       <div className="part-row-side">
-        <div className="part-row-price">
-          <span>{part.availabilityLabel ?? "RFQ"}</span>
-          {t("requestQuote")}
-        </div>
         <Ic.arrowR />
       </div>
     </Link>

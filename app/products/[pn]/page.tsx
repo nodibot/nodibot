@@ -6,9 +6,9 @@ import { Header } from "@/app/_components/header";
 import { Footer } from "@/app/_components/footer";
 import { WaFloat } from "@/app/_components/wa-float";
 import { Ic } from "@/app/_components/icons";
-import { PartImage, StockBadge, LifeBadge } from "@/app/_components/badges";
 import { ProductCard, ProductListItem } from "@/app/_components/catalog/ProductCard";
-import { Specs, Compat, AvailabilityPanel, TrustStrip } from "@/app/_components/product/sections";
+import { ProductGallery } from "@/app/_components/product/ProductGallery";
+import { Specs } from "@/app/_components/product/sections";
 import { ViewCounter } from "@/app/_components/product/ViewCounter";
 import { RfqForm } from "@/app/_components/rfq/RfqForm";
 import { withLocale } from "@/app/_lib/locale-path";
@@ -20,7 +20,7 @@ import {
   getCategoryCollectionForPart,
   type SeoLocale,
 } from "@/app/_lib/seo-collections";
-import type { Part } from "@/app/_lib/types";
+import { partGalleryImages, type Part } from "@/app/_lib/types";
 
 function productDescription(part: Part) {
   const category = part.categoryL2 ?? CAT_LABEL[part.cat] ?? part.cat;
@@ -48,7 +48,7 @@ export async function generateMetadata({
   const path = `/products/${encodeURIComponent(part.pn)}`;
   const localizedPath = withLocale(locale, path);
   const url = absoluteUrl(localizedPath);
-  const images = part.imageStatus === "approved" && part.imageUrl ? [part.imageUrl] : [];
+  const images = partGalleryImages(part);
 
   return {
     title,
@@ -91,9 +91,7 @@ export default async function ProductPage({
   const brandCollection = getBrandCollectionForPart(part);
   const categoryCollection = getCategoryCollectionForPart(part);
 
-  // One image per part today; the gallery scales up if that ever changes.
-  const galleryImages =
-    part.imageStatus === "approved" && part.imageUrl ? [part.imageUrl] : [];
+  const galleryImages = partGalleryImages(part);
   const productPath = withLocale(locale, `/products/${encodeURIComponent(part.pn)}`);
   const productUrl = absoluteUrl(productPath);
   const productJsonLd = {
@@ -210,27 +208,11 @@ export default async function ProductPage({
         <div className="pdp">
           {/* left: gallery + details */}
           <div>
-            <div className="pdp-gallery" style={{ position: "static" }}>
-              <div className="pdp-img">
-                <PartImage part={part} />
-              </div>
-              {/* Parts currently have a single image; the thumbnail strip only
-                  appears if a part ever carries more than one. */}
-              {galleryImages.length > 1 && (
-                <div className="pdp-thumbs">
-                  {galleryImages.map((src) => (
-                    <div className="pdp-thumb" key={src}>
-                      <PartImage part={part} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ProductGallery part={part} images={galleryImages} />
 
             <div style={{ marginTop: 34 }}>
               <h3 className="section-h">{t("specifications")}</h3>
               <Specs part={part} />
-              <Compat part={part} />
 
               {related.length > 0 && (
                 <>
@@ -267,31 +249,6 @@ export default async function ProductPage({
                   {categoryCollection.title[locale]}
                 </Link>
               )}
-            </div>
-            <div className="pdp-badges">
-              <StockBadge part={part} />
-              <LifeBadge life={part.life} />
-              <span className="badge badge-life">{COND[part.cond] ?? part.cond}</span>
-            </div>
-
-            <AvailabilityPanel part={part} />
-            <TrustStrip />
-
-            <div
-              style={{
-                marginBottom: 18,
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                justifyContent: "space-between",
-              }}
-            >
-              {/* <div className="resp-pill">
-                <span className="pulse" /> {t("engineersViewed", { count: part.views.toLocaleString() })}
-              </div> */}
-              {/* <div style={{ fontSize: 12.5, color: "var(--muted)" }}>
-                {t("leadTime")} · <strong style={{ color: "var(--ink)" }}>{part.lead}</strong>
-              </div> */}
             </div>
 
             <RfqForm part={part} />

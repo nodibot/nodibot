@@ -673,6 +673,13 @@ button { font-family: inherit; cursor: pointer; }
 .pdp-brand { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 .pdp-pn { font-family: var(--font-mono); font-size: 30px; font-weight: 600; letter-spacing: -0.03em; margin: 8px 0 6px; line-height: 1.05; }
 .pdp-name { font-size: 18px; color: var(--ink-2); margin: 0 0 18px; line-height: 1.4; font-weight: 450; }
+.pdp-stock {
+  margin: -8px 0 16px;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--in-stock);
+}
+.pdp-stock[data-stock="request"] { color: var(--accent); }
 .pdp-seo-links { display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 20px; }
 .pdp-seo-links a {
   padding: 7px 10px;

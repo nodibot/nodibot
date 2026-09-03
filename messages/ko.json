@@ -5,7 +5,6 @@
     "categories": "카테고리",
     "brands": "브랜드",
     "inventory": "재고",
-    "sellParts": "부품 판매",
     "searchPlaceholder": "부품 번호를 붙여넣으세요 - 예: IRB2600-20/1.65, 3HAC050363-001...",
     "searchAria": "부품 검색",
     "toggleTheme": "테마 전환",
@@ -199,6 +198,10 @@
     "specLifecycle": "라이프사이클 상태",
     "specGeneration": "컨트롤러 세대",
     "specLeadTime": "리드타임",
+    "specAvailability": "재고",
+    "stockAvailable": "재고 있음",
+    "stockAvailableQty": "재고 있음 · {qty}",
+    "sourceOnRequest": "요청 시 소싱",
     "specWarranty": "보증",
     "warrantyValue": "6개월 · 기능 보증"
   },

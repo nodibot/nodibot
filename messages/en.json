@@ -5,7 +5,6 @@
     "categories": "Categories",
     "brands": "Brands",
     "inventory": "Inventory",
-    "sellParts": "Sell parts",
     "searchPlaceholder": "Paste a part number - e.g. IRB2600-20/1.65, 3HAC050363-001...",
     "searchAria": "Search parts",
     "toggleTheme": "Toggle theme",
@@ -199,6 +198,10 @@
     "specLifecycle": "Lifecycle status",
     "specGeneration": "Controller generation",
     "specLeadTime": "Lead time",
+    "specAvailability": "Availability",
+    "stockAvailable": "Stock available",
+    "stockAvailableQty": "Stock available · {qty}",
+    "sourceOnRequest": "Source on request",
     "specWarranty": "Warranty",
     "warrantyValue": "6 months · functional guarantee"
   },

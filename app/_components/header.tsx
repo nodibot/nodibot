@@ -130,14 +130,9 @@ export function Header({
           </>
         )}
 
-        {(variant === "app" || themeVisible) && (
+        {themeVisible && (
           <div className="topbar-actions">
-            {variant === "app" && (
-              <Link className="topbar-link" href={withLocale(locale, "/catalog")}>
-                {t("sellParts")}
-              </Link>
-            )}
-            {themeVisible && <ThemeToggle dark={dark} toggle={toggle} />}
+            <ThemeToggle dark={dark} toggle={toggle} />
           </div>
         )}
       </div>

@@ -237,6 +237,12 @@ export default async function ProductPage({
             <div className="pdp-brand">{part.brand}</div>
             <h1 className="pdp-pn mono">{part.pn}</h1>
             <p className="pdp-name">{part.name}</p>
+            <p className="pdp-stock" data-stock={part.stock === "in" ? "in" : "request"}>
+              {part.availabilityLabel
+                ?? (part.stock === "in"
+                  ? (part.qty != null ? t("stockAvailableQty", { qty: part.qty }) : t("stockAvailable"))
+                  : t("sourceOnRequest"))}
+            </p>
             <p className="pdp-name">{t("description", { brand: part.brand, pn: part.pn })}</p>
             <div className="pdp-seo-links">
               {brandCollection && (

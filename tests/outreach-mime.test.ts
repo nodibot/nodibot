@@ -23,6 +23,8 @@ describe("buildMimeMessage", () => {
     expect(decoded).toContain("To: you@y.com");
     expect(decoded).toContain("Subject: Hi");
     expect(decoded).toContain("Hello");
+    expect(decoded).toContain("multipart/alternative");
+    expect(decoded).toContain("text/html");
   });
 
   it("adds In-Reply-To and References when given an inReplyTo message id", () => {
@@ -34,5 +36,33 @@ describe("buildMimeMessage", () => {
   it("omits threading headers when no inReplyTo", () => {
     const decoded = decodeRaw(buildMimeMessage({ from: "a@x.com", to: "b@y.com", subject: "s", body: "b" }));
     expect(decoded).not.toContain("In-Reply-To");
+  });
+
+  it("encodes curly apostrophes as UTF-8 quoted-printable", () => {
+    const decoded = decodeRaw(
+      buildMimeMessage({
+        from: "me@x.com",
+        to: "you@y.com",
+        subject: "Hi",
+        body: "you\u2019re looking",
+      }),
+    );
+    expect(decoded).toContain("=E2=80=99");
+    expect(decoded).not.toContain("=2019");
+  });
+
+  it("turns template newlines into HTML line breaks", () => {
+    const decoded = decodeRaw(
+      buildMimeMessage({
+        from: "me@x.com",
+        to: "you@y.com",
+        subject: "Hi",
+        body: "Dear Sam,\n\nBullet one\nBullet two",
+      }),
+    );
+    expect(decoded).toContain("Dear Sam,<br>");
+    expect(decoded).toContain("Bullet one<br>");
+    expect(decoded).toContain("Bullet two");
+    expect(decoded).not.toContain("white-space:pre-wrap");
   });
 });

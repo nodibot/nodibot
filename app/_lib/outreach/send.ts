@@ -9,8 +9,6 @@ import {
 } from "./queries";
 import type { OutreachLead, OutreachStep } from "./types";
 
-const FOOTER_ADDRESS = process.env.OUTREACH_MAILING_ADDRESS ?? "";
-
 export function sendStepForStatus(status: OutreachLead["status"]): OutreachStep | null {
   if (status === "pending") return "initial";
   if (status === "contacted") return "reminder";
@@ -32,11 +30,14 @@ export async function sendOutreachToLead(
     return { ok: false, error: `No active ${step} template` };
   }
 
-  const footer = `${lead.company}\n${FOOTER_ADDRESS}\nReply STOP to unsubscribe.`;
   const rendered = renderTemplate(
     { subject: tpl.subject, body: tpl.body },
-    { company: lead.company, contact_name: lead.contact_name, part_number: lead.part_number },
-    footer,
+    {
+      company: lead.company,
+      first_name: lead.first_name ?? lead.contact_name,
+      last_name: lead.last_name,
+      part_number: lead.part_number,
+    },
   );
 
   let threadId: string | undefined;

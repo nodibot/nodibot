@@ -2,15 +2,15 @@
 
 import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { deleteLeadAction } from "./actions";
+import { deleteTemplateAction } from "../actions";
 
 type DeleteState = { ok: boolean; error: string | null };
 
 const initial: DeleteState = { ok: false, error: null };
 
-export function LeadDeleteButton({ id, company }: { id: string; company: string }) {
+export function TemplateDeleteButton({ id, name }: { id: string; name: string }) {
   const router = useRouter();
-  const [state, formAction, pending] = useActionState(deleteLeadAction, initial);
+  const [state, formAction, pending] = useActionState(deleteTemplateAction, initial);
 
   useEffect(() => {
     if (state.ok) router.refresh();
@@ -20,7 +20,7 @@ export function LeadDeleteButton({ id, company }: { id: string; company: string 
     <form
       action={formAction}
       onSubmit={(e) => {
-        if (!confirm(`Delete ${company}? This cannot be undone.`)) e.preventDefault();
+        if (!confirm(`Delete template “${name}”? This cannot be undone.`)) e.preventDefault();
       }}
     >
       <input type="hidden" name="id" value={id} />

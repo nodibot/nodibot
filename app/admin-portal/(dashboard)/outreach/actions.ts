@@ -3,17 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { createGmailSender } from "@/app/_lib/gmail";
 import { createSupabaseServerClient } from "@/app/_lib/supabase-server";
-import { addLead, deleteLead, getLeadsByIds, importLeads, saveSettings, saveTemplate, updateLead } from "@/app/_lib/outreach/queries";
+import { addLead, deleteLead, deleteLeads, deleteTemplate, getLeadsByIds, importLeads, saveSettings, saveTemplate, updateLead } from "@/app/_lib/outreach/queries";
 import { parseLeadsFile } from "@/app/_lib/outreach/import-leads";
 import { sendOutreachToLead, sleep } from "@/app/_lib/outreach/send";
-import type { TemplateKind } from "@/app/_lib/outreach/types";
+import type { OutreachLead, TemplateKind } from "@/app/_lib/outreach/types";
 
 export type SendLeadsResult = { sent: number; failed: number; errors: string[] };
 
 export async function addLeadAction(formData: FormData) {
   await addLead({
     company: String(formData.get("company") ?? "").trim(),
-    contact_name: (String(formData.get("contact_name") ?? "").trim() || null),
+    first_name: String(formData.get("first_name") ?? "").trim() || null,
+    last_name: String(formData.get("last_name") ?? "").trim() || null,
     email: String(formData.get("email") ?? "").trim().toLowerCase(),
     part_number: (String(formData.get("part_number") ?? "").trim() || null),
     note: (String(formData.get("note") ?? "").trim() || null),
@@ -37,17 +38,44 @@ export async function importLeadsAction(_prev: unknown, formData: FormData): Pro
   return { imported, errors };
 }
 
+const LEAD_STATUSES: OutreachLead["status"][] = [
+  "pending",
+  "contacted",
+  "reminded",
+  "replied",
+  "bounced",
+  "unsubscribed",
+  "completed",
+];
+
+function parseLeadStatus(value: string): OutreachLead["status"] | null {
+  return LEAD_STATUSES.includes(value as OutreachLead["status"])
+    ? (value as OutreachLead["status"])
+    : null;
+}
+
 export async function updateLeadAction(_prev: unknown, formData: FormData): Promise<{ ok: boolean; error: string | null }> {
   const id = String(formData.get("id") ?? "").trim();
   if (!id) return { ok: false, error: "Missing lead id" };
 
+  const company = String(formData.get("company") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!company) return { ok: false, error: "Company is required" };
+  if (!email) return { ok: false, error: "Email is required" };
+
+  const statusRaw = String(formData.get("status") ?? "").trim();
+  const status = statusRaw ? parseLeadStatus(statusRaw) : undefined;
+  if (statusRaw && !status) return { ok: false, error: "Invalid status" };
+
   try {
     await updateLead(id, {
-      company: String(formData.get("company") ?? "").trim(),
-      contact_name: String(formData.get("contact_name") ?? "").trim() || null,
-      email: String(formData.get("email") ?? "").trim().toLowerCase(),
+      company,
+      first_name: String(formData.get("first_name") ?? "").trim() || null,
+      last_name: String(formData.get("last_name") ?? "").trim() || null,
+      email,
       part_number: String(formData.get("part_number") ?? "").trim() || null,
       note: String(formData.get("note") ?? "").trim() || null,
+      ...(status ? { status } : {}),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Update failed";
@@ -58,24 +86,71 @@ export async function updateLeadAction(_prev: unknown, formData: FormData): Prom
   return { ok: true, error: null };
 }
 
-export async function deleteLeadAction(formData: FormData) {
+export async function deleteLeadAction(_prev: unknown, formData: FormData): Promise<{ ok: boolean; error: string | null }> {
   const id = String(formData.get("id") ?? "").trim();
-  if (!id) throw new Error("Missing lead id");
-  await deleteLead(id);
+  if (!id) return { ok: false, error: "Missing lead id" };
+  try {
+    await deleteLead(id);
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Delete failed" };
+  }
   revalidatePath("/admin-portal/outreach");
+  return { ok: true, error: null };
 }
 
-export async function saveTemplateAction(formData: FormData) {
+export async function deleteLeadsAction(leadIds: string[]): Promise<{ deleted: number; error: string | null }> {
+  if (leadIds.length === 0) return { deleted: 0, error: null };
+  try {
+    await deleteLeads(leadIds);
+  } catch (err) {
+    return { deleted: 0, error: err instanceof Error ? err.message : "Delete failed" };
+  }
+  revalidatePath("/admin-portal/outreach");
+  return { deleted: leadIds.length, error: null };
+}
+
+export async function saveTemplateAction(
+  _prev: unknown,
+  formData: FormData,
+): Promise<{ ok: boolean; error: string | null }> {
   const id = String(formData.get("id") ?? "").trim();
-  await saveTemplate({
-    id: id || undefined,
-    name: String(formData.get("name") ?? "").trim(),
-    kind: String(formData.get("kind") ?? "initial") as TemplateKind,
-    subject: String(formData.get("subject") ?? ""),
-    body: String(formData.get("body") ?? ""),
-    active: formData.get("active") === "on",
-  });
+  const name = String(formData.get("name") ?? "").trim();
+  const subject = String(formData.get("subject") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+  if (!name) return { ok: false, error: "Template name is required" };
+  if (!subject) return { ok: false, error: "Subject is required" };
+  if (!body) return { ok: false, error: "Body is required" };
+
+  try {
+    await saveTemplate({
+      id: id || undefined,
+      name,
+      kind: String(formData.get("kind") ?? "initial") as TemplateKind,
+      subject,
+      body,
+      active: formData.get("active") === "on",
+    });
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Save failed" };
+  }
+
   revalidatePath("/admin-portal/outreach/templates");
+  return { ok: true, error: null };
+}
+
+export async function deleteTemplateAction(
+  _prev: unknown,
+  formData: FormData,
+): Promise<{ ok: boolean; error: string | null }> {
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) return { ok: false, error: "Missing template id" };
+  try {
+    await deleteTemplate(id);
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Delete failed" };
+  }
+  revalidatePath("/admin-portal/outreach/templates");
+  return { ok: true, error: null };
 }
 
 // Coerce a FormData value to a positive integer, falling back to `fallback`

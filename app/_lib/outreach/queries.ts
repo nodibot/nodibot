@@ -3,6 +3,22 @@ import { createSupabaseServerClient } from "../supabase-server";
 import type { EmailTemplate, OutreachLead, OutreachSettings, TemplateKind } from "./types";
 import type { ParsedLead } from "./csv";
 
+function emptyToNull(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+export function leadNameFields(firstName: string | null | undefined, lastName: string | null | undefined) {
+  const first_name = emptyToNull(firstName);
+  const last_name = emptyToNull(lastName);
+  return { first_name, last_name, contact_name: first_name };
+}
+
+function asLead(row: OutreachLead): OutreachLead {
+  const names = leadNameFields(row.first_name ?? row.contact_name, row.last_name);
+  return { ...row, ...names };
+}
+
 // ---- reads (admin UI, cookie client) ----
 
 export async function getLeads(): Promise<OutreachLead[]> {
@@ -12,7 +28,7 @@ export async function getLeads(): Promise<OutreachLead[]> {
     .select("*")
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []) as OutreachLead[];
+  return (data ?? []).map((row) => asLead(row as OutreachLead));
 }
 
 export async function getLeadsByIds(ids: string[]): Promise<OutreachLead[]> {
@@ -20,7 +36,7 @@ export async function getLeadsByIds(ids: string[]): Promise<OutreachLead[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from("outreach_leads").select("*").in("id", ids);
   if (error) throw new Error(error.message);
-  return (data ?? []) as OutreachLead[];
+  return (data ?? []).map((row) => asLead(row as OutreachLead));
 }
 
 export async function getTemplates(): Promise<EmailTemplate[]> {
@@ -39,27 +55,60 @@ export async function getSettings(): Promise<OutreachSettings> {
 
 // ---- writes (admin UI) ----
 
-export async function addLead(input: { company: string; contact_name: string | null; email: string; part_number: string | null; note: string | null }): Promise<void> {
+export async function addLead(input: {
+  company: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  part_number: string | null;
+  note: string | null;
+}): Promise<void> {
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("outreach_leads").insert({ ...input, source: "manual" });
+  const { error } = await supabase.from("outreach_leads").insert({
+    ...input,
+    ...leadNameFields(input.first_name, input.last_name),
+    source: "manual",
+  });
   if (error) throw new Error(error.message);
 }
 
 export async function updateLead(
   id: string,
-  input: { company: string; contact_name: string | null; email: string; part_number: string | null; note: string | null },
+  input: {
+    company: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+    part_number: string | null;
+    note: string | null;
+    status?: OutreachLead["status"];
+  },
 ): Promise<void> {
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase
+  const { error, data } = await supabase
     .from("outreach_leads")
-    .update({ ...input, updated_at: new Date().toISOString() })
-    .eq("id", id);
+    .update({
+      ...input,
+      ...leadNameFields(input.first_name, input.last_name),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
   if (error) throw new Error(error.message);
+  if (!data) throw new Error("Lead not found");
 }
 
 export async function deleteLead(id: string): Promise<void> {
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("outreach_leads").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteLeads(ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from("outreach_leads").delete().in("id", ids);
   if (error) throw new Error(error.message);
 }
 
@@ -69,7 +118,17 @@ export async function importLeads(rows: ParsedLead[]): Promise<number> {
   const supabase = await createSupabaseServerClient();
   const { error, count } = await supabase
     .from("outreach_leads")
-    .upsert(rows.map((r) => ({ ...r, source: "csv" as const })), { onConflict: "email", ignoreDuplicates: false, count: "exact" });
+    .upsert(
+      rows.map((r) => ({
+        company: r.company,
+        email: r.email,
+        part_number: r.part_number,
+        note: r.note,
+        ...leadNameFields(r.first_name, r.last_name),
+        source: "csv" as const,
+      })),
+      { onConflict: "email", ignoreDuplicates: false, count: "exact" },
+    );
   if (error) throw new Error(error.message);
   return count ?? rows.length;
 }
@@ -77,12 +136,25 @@ export async function importLeads(rows: ParsedLead[]): Promise<number> {
 export async function saveTemplate(input: { id?: string; name: string; kind: TemplateKind; subject: string; body: string; active: boolean }): Promise<void> {
   const supabase = await createSupabaseServerClient();
   if (input.id) {
-    const { error } = await supabase.from("email_templates").update(input).eq("id", input.id);
+    const { id, ...fields } = input;
+    const { error, data } = await supabase
+      .from("email_templates")
+      .update(fields)
+      .eq("id", id)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) throw new Error("Template not found");
   } else {
     const { error } = await supabase.from("email_templates").insert(input);
     if (error) throw new Error(error.message);
   }
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from("email_templates").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export async function saveSettings(input: { daily_cap: number; warmup_start_date: string | null; reminder_delay_days: number; paused: boolean }): Promise<void> {
@@ -105,7 +177,7 @@ export async function getActiveLeadsWith(supabase: SupabaseClient): Promise<Outr
     .select("*")
     .in("status", ["pending", "contacted", "reminded"]);
   if (error) throw new Error(error.message);
-  return (data ?? []) as OutreachLead[];
+  return (data ?? []).map((row) => asLead(row as OutreachLead));
 }
 
 export async function getActiveTemplateWith(supabase: SupabaseClient, kind: TemplateKind): Promise<EmailTemplate | null> {

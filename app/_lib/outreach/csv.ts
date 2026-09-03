@@ -1,9 +1,11 @@
 // Lead import parsing from tabular data (CSV text or spreadsheet rows).
-// Header row must include `company` and `email`; optional `contact_name`, `part_number`, `note`.
+// Header row must include `company` and `email`; optional `first_name`, `last_name`,
+// `contact_name` (treated as first name), `part_number`, `note`.
 
 export interface ParsedLead {
   company: string;
-  contact_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   email: string;
   part_number: string | null;
   note: string | null;
@@ -46,6 +48,8 @@ export function parseLeadRows(raw: unknown[][]): LeadImportResult {
   const idx = (name: string) => header.indexOf(name);
   const ci = {
     company: idx("company"),
+    first: idx("first_name"),
+    last: idx("last_name"),
     contact: idx("contact_name"),
     email: idx("email"),
     part: idx("part_number"),
@@ -68,9 +72,13 @@ export function parseLeadRows(raw: unknown[][]): LeadImportResult {
       errors.push(`Row ${i + 1}: invalid email '${cells[ci.email] ?? ""}' — skipped`);
       continue;
     }
+    const firstName =
+      (ci.first === -1 ? null : emptyToNull(cells[ci.first])) ??
+      (ci.contact === -1 ? null : emptyToNull(cells[ci.contact]));
     rows.push({
       company,
-      contact_name: ci.contact === -1 ? null : emptyToNull(cells[ci.contact]),
+      first_name: firstName,
+      last_name: ci.last === -1 ? null : emptyToNull(cells[ci.last]),
       email,
       part_number: ci.part === -1 ? null : emptyToNull(cells[ci.part]),
       note: ci.note === -1 ? null : emptyToNull(cells[ci.note]),

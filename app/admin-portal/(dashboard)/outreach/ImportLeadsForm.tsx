@@ -13,8 +13,8 @@ export function ImportLeadsForm() {
     <form ref={formRef} action={formAction} className="admin-form">
       <p className="hint">
         Upload a <code>.csv</code> or Excel <code>.xlsx</code> file. Required columns:{" "}
-        <code>company</code>, <code>email</code>. Optional: <code>contact_name</code>,{" "}
-        <code>part_number</code>, <code>note</code>.
+        <code>company</code>, <code>email</code>. Optional: <code>first_name</code>, <code>last_name</code>,{" "}
+        <code>part_number</code>, <code>note</code>. <code>contact_name</code> is still accepted as first name.
       </p>
 
       <div className="admin-form-foot">

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { OutreachLead, OutreachStatus } from "@/app/_lib/outreach/types";
-import { sendLeadsAction } from "./actions";
+import { deleteLeadsAction, sendLeadsAction } from "./actions";
 import { LeadDeleteButton } from "./LeadDeleteButton";
 import { LeadEditPanel } from "./LeadEditPanel";
 
@@ -45,9 +45,8 @@ export function LeadsTable({ leads }: { leads: OutreachLead[] }) {
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{ sent: number; failed: number; errors: string[] } | null>(null);
 
-  const sendableLeads = leads.filter((l) => isSendable(l.status));
-  const allSendableSelected =
-    sendableLeads.length > 0 && sendableLeads.every((l) => selected.has(l.id));
+  const allSelected = leads.length > 0 && leads.every((l) => selected.has(l.id));
+  const selectedSendableCount = leads.filter((l) => selected.has(l.id) && isSendable(l.status)).length;
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -58,16 +57,16 @@ export function LeadsTable({ leads }: { leads: OutreachLead[] }) {
     });
   }
 
-  function toggleAllSendable() {
-    if (allSendableSelected) {
+  function toggleAll() {
+    if (allSelected) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(sendableLeads.map((l) => l.id)));
+      setSelected(new Set(leads.map((l) => l.id)));
     }
   }
 
   function handleSend() {
-    const ids = [...selected];
+    const ids = leads.filter((l) => selected.has(l.id) && isSendable(l.status)).map((l) => l.id);
     setFeedback(null);
     startTransition(async () => {
       const result = await sendLeadsAction(ids);
@@ -76,6 +75,22 @@ export function LeadsTable({ leads }: { leads: OutreachLead[] }) {
         setSelected(new Set());
         router.refresh();
       }
+    });
+  }
+
+  function handleDeleteSelected() {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    if (!confirm(`Delete ${ids.length} lead(s)? This cannot be undone.`)) return;
+    setFeedback(null);
+    startTransition(async () => {
+      const result = await deleteLeadsAction(ids);
+      if (result.error) {
+        setFeedback({ sent: 0, failed: ids.length, errors: [result.error] });
+        return;
+      }
+      setSelected(new Set());
+      router.refresh();
     });
   }
 
@@ -90,12 +105,17 @@ export function LeadsTable({ leads }: { leads: OutreachLead[] }) {
       {(selected.size > 0 || feedback) && (
         <div className="admin-toolbar">
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-            {selected.size > 0 && (
+            {selectedSendableCount > 0 && (
               <button type="button" className="btn btn-primary btn-sm" disabled={pending} onClick={handleSend}>
-                {pending ? "Sending…" : `Send to ${selected.size} selected`}
+                {pending ? "Sending…" : `Send to ${selectedSendableCount} selected`}
               </button>
             )}
             {selected.size > 0 && (
+              <button type="button" className="btn btn-ghost btn-sm" disabled={pending} onClick={handleDeleteSelected}>
+                {pending ? "Working…" : `Delete ${selected.size} selected`}
+              </button>
+            )}
+            {selectedSendableCount > 0 && (
               <span className="admin-toolbar-note">
                 Pending leads get the initial template; contacted leads get the reminder.
               </span>
@@ -127,13 +147,15 @@ export function LeadsTable({ leads }: { leads: OutreachLead[] }) {
               <th style={{ width: 44 }}>
                 <input
                   type="checkbox"
-                  aria-label="Select all sendable leads"
-                  checked={allSendableSelected}
-                  disabled={sendableLeads.length === 0}
-                  onChange={toggleAllSendable}
+                  aria-label="Select all leads"
+                  checked={allSelected}
+                  disabled={leads.length === 0}
+                  onChange={toggleAll}
                 />
               </th>
               <th>Company</th>
+              <th>First name</th>
+              <th>Last name</th>
               <th>Email</th>
               <th>Part</th>
               <th>Status</th>
@@ -143,7 +165,6 @@ export function LeadsTable({ leads }: { leads: OutreachLead[] }) {
           </thead>
           <tbody>
             {leads.map((l) => {
-              const sendable = isSendable(l.status);
               return (
                 <tr key={l.id}>
                   <td>
@@ -151,23 +172,19 @@ export function LeadsTable({ leads }: { leads: OutreachLead[] }) {
                       type="checkbox"
                       aria-label={`Select ${l.company}`}
                       checked={selected.has(l.id)}
-                      disabled={!sendable}
                       onChange={() => toggle(l.id)}
                     />
                   </td>
                   <td>
                     <div style={{ fontWeight: 650 }}>{l.company}</div>
-                    {l.contact_name && (
-                      <div className="dim" style={{ fontSize: 12.5, marginTop: 2 }}>
-                        {l.contact_name}
-                      </div>
-                    )}
                     {l.note && (
                       <div style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 6, lineHeight: 1.4 }}>
                         {l.note}
                       </div>
                     )}
                   </td>
+                  <td>{l.first_name ?? "—"}</td>
+                  <td>{l.last_name ?? "—"}</td>
                   <td className="mono">{l.email}</td>
                   <td className="mono">{l.part_number ?? "—"}</td>
                   <td>

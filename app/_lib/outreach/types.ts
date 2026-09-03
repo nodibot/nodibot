@@ -15,6 +15,8 @@ export type TemplateKind = "initial" | "reminder";
 export interface OutreachLead {
   id: string;
   company: string;
+  first_name: string | null;
+  last_name: string | null;
   contact_name: string | null;
   email: string;
   part_number: string | null;

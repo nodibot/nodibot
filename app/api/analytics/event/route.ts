@@ -73,6 +73,20 @@ function hashIp(ip: string | null): string | null {
   return createHash("sha256").update(`${salt}:${ip}`).digest("hex");
 }
 
+function isLocalHost(value: string | null): boolean {
+  if (!value) return false;
+  let host = value.trim().replace(/^https?:\/\//i, "").split("/")[0].toLowerCase();
+  if (host.startsWith("[")) {
+    const end = host.indexOf("]");
+    host = end === -1 ? host.slice(1) : host.slice(1, end);
+  } else {
+    host = host.replace(/:\d+$/, "");
+  }
+  return host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "0.0.0.0";
+}
+
+const NOISY_EVENTS = new Set<EventName>(["session_entry", "homepage_view"]);
+
 export async function POST(request: Request) {
   let body: EventBody;
   try {
@@ -83,6 +97,15 @@ export async function POST(request: Request) {
 
   if (!body.event_name || !ALLOWED.includes(body.event_name)) {
     return NextResponse.json({ error: "Invalid event_name" }, { status: 400 });
+  }
+
+  if (
+    NOISY_EVENTS.has(body.event_name) ||
+    isLocalHost(request.headers.get("host")) ||
+    isLocalHost(request.headers.get("origin")) ||
+    isLocalHost(request.headers.get("x-forwarded-host"))
+  ) {
+    return NextResponse.json({ ok: true, skipped: true }, { status: 202 });
   }
 
   try {

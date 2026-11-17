@@ -1,7 +1,9 @@
 import { defineRouting } from "next-intl/routing";
 
+// Korean copy stays in messages/ko.json. "ko" is omitted here so those pages
+// are not routed. Add it back to re-enable /ko.
 export const routing = defineRouting({
-  locales: ["en", "ko"],
+  locales: ["en"],
   defaultLocale: "en",
   localePrefix: "always",
 });

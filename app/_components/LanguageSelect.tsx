@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { routing } from "@/i18n/routing";
 import { replaceLocale } from "@/app/_lib/locale-path";
 
 export function LanguageSelect({ className = "locale-select" }: { className?: string }) {
@@ -10,6 +11,7 @@ export function LanguageSelect({ className = "locale-select" }: { className?: st
   const searchParams = useSearchParams();
   const locale = useLocale();
   const t = useTranslations("Header");
+  if (routing.locales.length < 2) return null;
 
   const switchLocale = (nextLocale: string) => {
     const query = searchParams.toString();
@@ -24,8 +26,11 @@ export function LanguageSelect({ className = "locale-select" }: { className?: st
       value={locale}
       onChange={(event) => switchLocale(event.target.value)}
     >
-      <option value="en">EN</option>
-      <option value="ko">KO</option>
+      {routing.locales.map((code) => (
+        <option key={code} value={code}>
+          {code.toUpperCase()}
+        </option>
+      ))}
     </select>
   );
 }

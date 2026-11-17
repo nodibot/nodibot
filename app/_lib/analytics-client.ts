@@ -33,7 +33,17 @@ function isAdminPath(pathname: string): boolean {
   return pathname === "/admin-portal" || pathname.startsWith("/admin-portal/");
 }
 
+function isLocalHost(hostname: string): boolean {
+  const host = hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  return host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "0.0.0.0";
+}
+
+const UNRECORDED_EVENTS = new Set<AnalyticsEventName>(["session_entry", "homepage_view"]);
+
 export function trackEvent(payload: AnalyticsEventPayload): void {
+  if (typeof window !== "undefined" && isLocalHost(window.location.hostname)) return;
+  if (UNRECORDED_EVENTS.has(payload.event_name)) return;
+
   const pathname = payload.page_path ?? (typeof window !== "undefined" ? window.location.pathname : "");
   if (pathname && isAdminPath(pathname)) return;
 

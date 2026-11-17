@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { createSupabaseServerClient } from "./supabase-server";
 import {
   rowToAdminPart,
@@ -255,6 +256,13 @@ export function summarizeEventMetadata(meta: Record<string, unknown> | null): st
 
 const ANALYTICS_ROW_LIMIT = 10_000;
 
+function localhostIpHashes(): Set<string> {
+  const salt = process.env.ANALYTICS_IP_HASH_SALT ?? "";
+  return new Set(
+    ["127.0.0.1", "::1", "0.0.0.0"].map((ip) => createHash("sha256").update(`${salt}:${ip}`).digest("hex")),
+  );
+}
+
 const QUALIFIED_ACTION_EVENTS = new Set([
   "homepage_search",
   "homepage_brand_click",
@@ -314,6 +322,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
         "event_name, part_pn, query, page_path, channel, country_code, region, city, ip_hash, metadata, created_at",
       )
       .gte("created_at", since)
+      .not("event_name", "in", '("session_entry","homepage_view")')
       .order("created_at", { ascending: false })
       .limit(ANALYTICS_ROW_LIMIT),
     supabase
@@ -368,7 +377,10 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
   }
   if (inquiriesError) throw new Error(inquiriesError.message);
 
-  const allRows = events ?? [];
+  const fetchedRows = events ?? [];
+  const eventsTruncated = fetchedRows.length >= ANALYTICS_ROW_LIMIT;
+  const localHashes = localhostIpHashes();
+  const allRows = fetchedRows.filter((row) => !row.ip_hash || !localHashes.has(row.ip_hash));
   const rows = filterRowsByEvent(allRows, eventFilter);
   const filteredPartClicks = new Map<string, number>();
   const allPartClicks = new Map<string, number>();
@@ -449,11 +461,9 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
           : null;
     if (!entryPage || !row.ip_hash) continue;
 
-    if (row.event_name === "session_entry") {
-      const visitors = entryVisitors.get(entryPage) ?? new Set<string>();
-      visitors.add(row.ip_hash);
-      entryVisitors.set(entryPage, visitors);
-    }
+    const visitors = entryVisitors.get(entryPage) ?? new Set<string>();
+    visitors.add(row.ip_hash);
+    entryVisitors.set(entryPage, visitors);
     if (QUALIFIED_ACTION_EVENTS.has(row.event_name)) {
       const qualified = entryQualifiedVisitors.get(entryPage) ?? new Set<string>();
       qualified.add(row.ip_hash);
@@ -474,12 +484,13 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     })
     .sort((a, b) => b.visitors - a.visitors || b.qualifiedVisitors - a.qualifiedVisitors);
 
-  const homepageViews = allRows.filter((row) => row.event_name === "homepage_view").length;
-  const homepageVisitorHashes = new Set(
-    allRows
-      .filter((row) => row.event_name === "homepage_view" && row.ip_hash)
-      .map((row) => row.ip_hash as string),
-  );
+  const homepageVisitorHashes = new Set<string>();
+  for (const row of allRows) {
+    if (!row.ip_hash) continue;
+    const meta = asMetadata(row.metadata);
+    const entryPage = meta && typeof meta.entry_page === "string" ? meta.entry_page : null;
+    if (isHomepagePath(entryPage)) homepageVisitorHashes.add(row.ip_hash);
+  }
   const homepageQualifiedHashes = new Set<string>();
   let homepageActions = 0;
   for (const row of allRows) {
@@ -573,7 +584,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     whatsappClicks: rows.filter((r) => r.event_name === "whatsapp_click").length,
     emailClicks: rows.filter((r) => r.event_name === "email_click").length,
     catalogScrollEvents: rows.filter((r) => r.event_name === "catalog_scroll_depth").length,
-    homepageViews,
+    homepageViews: 0,
     homepageVisitors,
     homepageActions,
     homepageQualifiedVisitors,
@@ -586,7 +597,7 @@ export async function getAnalyticsOverview(options: AnalyticsOptions = {}): Prom
     inquiriesCreated: inquiriesCount ?? 0,
     rfqPerClickRate: productClicks > 0 ? rfqSubmittedEvents / productClicks : 0,
     uniqueVisitors,
-    eventsTruncated: allRows.length >= ANALYTICS_ROW_LIMIT,
+    eventsTruncated,
     topPartsByClick,
     topConvertingParts,
     topQueries,

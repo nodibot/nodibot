@@ -12,8 +12,19 @@ const intlProxy = createIntlMiddleware(routing);
 // /admin-portal/* routes: unauthenticated users are bounced to the login page,
 // and an already-authenticated admin visiting the login page is sent to the
 // dashboard. (Next.js 16 renamed Middleware to Proxy; behavior is unchanged.)
+function redirectDisabledKorean(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  if (!/^\/ko(?=\/|$)/.test(path)) return null;
+  if ((routing.locales as readonly string[]).includes("ko")) return null;
+  const url = request.nextUrl.clone();
+  url.pathname = path.replace(/^\/ko(?=\/|$)/, "/en");
+  return NextResponse.redirect(url, 308);
+}
+
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const koreanRedirect = redirectDisabledKorean(request);
+  if (koreanRedirect) return koreanRedirect;
 
   if (!path.startsWith("/admin-portal")) {
     return intlProxy(request);

@@ -1,3 +1,4 @@
+import { routing } from "@/i18n/routing";
 import { withLocale } from "@/app/_lib/locale-path";
 
 const siteURL = process.env.NEXT_PUBLIC_SITE_URL;
@@ -12,11 +13,13 @@ export function absoluteUrl(path = "/"): string {
   return new URL(path, SITE_URL).toString();
 }
 
-/** hreflang map for en/ko plus x-default → English. */
+/** hreflang map for the public locales, plus x-default → English. */
 export function localeLanguages(path: string): Record<string, string> {
-  return {
-    en: withLocale("en", path),
-    ko: withLocale("ko", path),
-    "x-default": withLocale("en", path),
+  const languages: Record<string, string> = {
+    "x-default": withLocale(routing.defaultLocale, path),
   };
+  for (const locale of routing.locales) {
+    languages[locale] = withLocale(locale, path);
+  }
+  return languages;
 }

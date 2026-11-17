@@ -182,12 +182,8 @@ export default async function TrafficAnalyticsPage({
         {/* Stats */}
         <div className="admin-stats">
           <div className="admin-stat">
-            <div className="n">{analytics.homepageViews.toLocaleString()}</div>
-            <div className="l">Homepage views</div>
-          </div>
-          <div className="admin-stat">
             <div className="n">{analytics.homepageVisitors.toLocaleString()}</div>
-            <div className="l">Homepage visitors (est.)</div>
+            <div className="l">Homepage entrants with activity</div>
           </div>
           <div className="admin-stat">
             <div className="n">{analytics.homepageActions.toLocaleString()}</div>
@@ -246,7 +242,7 @@ export default async function TrafficAnalyticsPage({
         <section className="admin-table-section">
           <h2 className="admin-section-title">Entry-page conversion</h2>
           <p className="hint" style={{ marginBottom: 12 }}>
-            Estimated unique session entrants who later searched, viewed a product, opened WhatsApp, or submitted an RFQ.
+            Visitors grouped by the page they entered on. Counts only actions such as search, product views, WhatsApp, and RFQ — not raw page loads.
           </p>
           <div className="admin-table-wrap">
             <table className="admin-table">
